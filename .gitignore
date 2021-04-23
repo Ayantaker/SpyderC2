@@ -1,3 +1,5 @@
 tmp/
 test.py
-__pycache__/stager.cpython-39.pyc
+__pycache__
+testexfil/
+exfiltration/

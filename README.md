@@ -6,4 +6,4 @@
 
 
 ## Current Condition
-- Running the program will make a stager exe, start a server. The file names in the directory where the stager.exe is run will be passed to the C2 server.
+- Running the program will make a stager exe, start a server. The actual files in the directory where the stager.exe is run will be passed to the C2 server.
