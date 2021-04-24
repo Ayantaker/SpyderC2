@@ -51,9 +51,15 @@ def main():
         ## Import stager code and convert to exe
         generate_stager()
     
-    ## Run a http listsener
-    run_flask()
-
+    while True:
+        cmd = str(input())
+        if cmd == 'http':
+            ## Run a http listsener
+            run_flask()
+        if cmd == 'getfiles':
+            pass
+        if cmd == 'exit':
+            break
     
 
     
