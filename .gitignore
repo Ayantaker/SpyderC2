@@ -1,5 +1,8 @@
 tmp/
+test/
 test.py
 __pycache__
 testexfil/
 exfiltration/
+commands.txt
+log.txt

