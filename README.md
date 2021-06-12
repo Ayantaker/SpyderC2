@@ -10,3 +10,10 @@
 - The flask server now runs as a separate process and the server is killed whenever the main script exits.
 - The stager now beacons continuously for commands, when commands given it sends all files in current directory
 - Added mongodb for communication between server and main script.
+- Victim now sends identifier as b64 cookie, server stores in  victims collection.
+
+
+
+## Add these
+- Status of victim whether dead or alive
+- Show on main screen, new victim has joined
