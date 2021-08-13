@@ -19,6 +19,10 @@
 	- Server UI now has use command to interact with a victim, where new victim specific commands can be issued
 	- Added info command for victim to show the victim ID and OS info.
 
+- 13.08.2021
+	- Now the victim has a last seen and a DEAD or alive status shown with the info command.
+	- The time after which victim is considered dead is 60 secs
+
 
 
 ## Add these
