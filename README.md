@@ -23,8 +23,19 @@
 	- Now the victim has a last seen and a DEAD or alive status shown with the info command.
 	- The time after which victim is considered dead is 60 secs
 
+- 12.09.2021
+	- Added modules for powershell and python browser_history and screenshot
+	- Linux screenshot and windows browser history works right now.
 
 
 ## Add these
 - Status of victim whether dead or alive
 - Show on main screen, new victim has joined
+- Cant send commands if dead
+- Kill victim
+- Funny names of victims
+- Logs of commands/ Proper logging system
+- Modules to be modular. Plug and play
+- Use victim to be called with first few letters of victim ID
+- Last used command/Proper console for interaction
+- Idenitfication of admin privelges
