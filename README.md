@@ -27,6 +27,12 @@
 	- Added modules for powershell and python browser_history and screenshot
 	- Linux screenshot and windows browser history works right now.
 
+- 18.09.2021
+	- All the modules (screenshot and browser_history) of python and powershell works
+	- Task now has a ID, Task is no more deleted, instead has a issued flag.
+	- Task output is added to the same task in db, task status is viewable in victim menu using tasks command.
+	- On the stager side if issue in handling commands, traceback is sent back in a GET request
+
 
 ## Add these
 - Status of victim whether dead or alive
@@ -39,3 +45,11 @@
 - Use victim to be called with first few letters of victim ID
 - Last used command/Proper console for interaction
 - Idenitfication of admin privelges
+- Debug mode for the stager
+
+
+
+## Note for next time dev
+
+- Fix the modules
+- Return from the powershell screenshot not proper

