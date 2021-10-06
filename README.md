@@ -33,6 +33,9 @@
 	- Task output is added to the same task in db, task status is viewable in victim menu using tasks command.
 	- On the stager side if issue in handling commands, traceback is sent back in a GET request
 
+- 07.10.2021
+	- Converted from procedural to object oriented.
+
 
 ## Add these
 - Status of victim whether dead or alive
