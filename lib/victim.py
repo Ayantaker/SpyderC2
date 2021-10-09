@@ -3,6 +3,10 @@ import pdb
 import random
 import string
 from lib.task import Task
+from termcolor import colored
+import readline
+
+
 class Victim:
 
 	mongoclient = None
@@ -30,10 +34,13 @@ class Victim:
 	@classmethod
 	## Shows victim help menu
 	def display_victim_help_menu(cls):
+		print('--------------------------------------')
+		print('|          VICTIM HELP MENU           |')
+		print('--------------------------------------')
 		commands = {'info':'Shows current victim information.' , 'modules': 'Shows modules executable on current victim.', 'tasks':'Show the task issued to the current victim and if there is output','back': 'Go back to main menu.'}
 
 		for command in commands.keys():
-			print(command + " ---> " + commands[command])
+			print(colored(command,'cyan') + " - " + commands[command])
 
 	## This will load the victim info present in DB, created from server.py and instanitate objects for them.
 	@classmethod
@@ -70,14 +77,14 @@ class Victim:
 	## Gets the various info of the victim. Trigerred by the info command.
 	def get_victim_info(self):
 		self.update_last_seen_from_db()
-		print(f"ID - {self.victim_id} \nPlatform - {self.platform} \nOS Version - {self.os_version} \nlastseen - {self.lastseen}")
+		print(f"{colored('ID','cyan')} - {self.victim_id} \n{colored('Platform','cyan')} - {self.platform} \n{colored('OS Version','cyan')} - {self.os_version} \n{colored('lastseen','cyan')} - {self.lastseen}")
 		self.get_victim_health_status()
 
 	def show_tasks(self):\
 		## TODO - update from db before showing if you want output or issuance status
 		for key in self.tasks.keys():
 			task_obj = self.tasks[key]
-			print(f"Task ID - {task_obj.task_id} \nCommand - {task_obj.command} \nCommand Output - {task_obj.output} \nIssued - {task_obj.issued}")
+			print(f"{colored('Task ID','cyan')} - {task_obj.task_id} \n{colored('Command','cyan')} - {task_obj.command} \n{colored('Command Output','cyan')} - {task_obj.output} \n{colored('Issued','cyan')} - {task_obj.issued}")
 
 
 	## Displays the victim menu
@@ -85,7 +92,7 @@ class Victim:
 		self.display_victim_help_menu()
 
 		while True:
-			print("Enter Victim based commands..")
+			print(colored("Enter victim based commands",'blue'))
 			cmd = str(input())
 
 			if cmd == 'info':
@@ -103,7 +110,7 @@ class Victim:
 					print('Command not supported. See the supported ones by running modules command')
 			elif cmd ==  'tasks':
 				self.show_tasks()
-			elif cmd == 'back':
+			elif cmd == 'back' or cmd == 'exit':
 				print("Going back to main menu...")
 				return
 

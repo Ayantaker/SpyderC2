@@ -1,5 +1,6 @@
 import pdb
 import os
+import pathlib
 
 class Task:
 
@@ -54,9 +55,9 @@ class Task:
 
 		## Send command script to victim
 		if language == 'python':
-			module_path = os.path.join(os.getcwd(), "modules",language,utility,self.command+".py")
+			module_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()), "../modules",language,utility,self.command+".py")
 		else:
-			module_path = os.path.join(os.getcwd(), "modules",language,utility,self.command+".ps1")
+			module_path = os.path.join(tr(pathlib.Path(__file__).parent.resolve()), "../modules",language,utility,self.command+".ps1")
 
 		f = open(module_path, "r")
 		script = f.read()

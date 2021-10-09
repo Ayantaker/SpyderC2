@@ -2,6 +2,7 @@ import subprocess
 import os
 import signal
 import pdb
+import pathlib
 
 class Listener:
 	## Class variable, since database url will be a constant for all listener
@@ -47,7 +48,10 @@ class Listener:
 
 
 	def start_listener(self):
-		flask_process = subprocess.Popen('sudo nohup python3 server.py > log.txt 2>&1 &',stdout=subprocess.PIPE, 
+		listener_script = os.path.join(str(pathlib.Path(__file__).parent.resolve()), f'../server.py')
+		log_dir = os.path.join(str(pathlib.Path(__file__).parent.resolve()), f'../logs')
+
+		flask_process = subprocess.Popen(f'sudo nohup python3 {listener_script} > {log_dir}/logs 2>&1 &',stdout=subprocess.PIPE, 
 					shell=True, preexec_fn=os.setsid)
 		
 

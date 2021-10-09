@@ -35,6 +35,14 @@
 
 - 07.10.2021
 	- Converted from procedural to object oriented.
+	- Victim can now be interacted with part of the ID
+
+- 10.10.2021
+	- Introduced logger for the framework
+	- Added command history like bash using realine
+	- the log.txt now shows useful logs like new victim joined, or task issued
+	- log is now opened autpmatically in a new terminal when main script is invoked. Needs Gnome-terminal
+
 
 
 ## Add these
@@ -43,12 +51,10 @@
 - Cant send commands if dead
 - Kill victim
 - Funny names of victims
-- Logs of commands/ Proper logging system
 - Modules to be modular. Plug and play
-- Use victim to be called with first few letters of victim ID
-- Last used command/Proper console for interaction
 - Idenitfication of admin privelges
 - Debug mode for the stager
+- Reregister victim if server stopped and then started, but victim still beaconing
 
 
 
