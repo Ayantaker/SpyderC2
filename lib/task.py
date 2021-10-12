@@ -1,6 +1,7 @@
 import pdb
 import os
 import pathlib
+from lib.module import Module
 
 class Task:
 
@@ -50,22 +51,15 @@ class Task:
 
 	## Returns the task in a dictionary to be issued by the server
 	def issue_dict(self):
-		language = 'python'
+		language = 'powershell'
 		utility = 'collection'
 
-		## Send command script to victim
-		if language == 'python':
-			module_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()), "../modules",language,utility,self.command+".py")
-		else:
-			module_path = os.path.join(tr(pathlib.Path(__file__).parent.resolve()), "../modules",language,utility,self.command+".ps1")
-
-		f = open(module_path, "r")
-		script = f.read()
-
+		module = Module(name = self.command , utility = utility, language = language)
+		module.load()
 
 		self.issued = True
 		self.update_task_to_db('issued')
-		return {'task_id': self.task_id, 'language': language, 'command': self.command, 'script': script}
+		return {'task_id': self.task_id, 'language': language, 'command': self.command, 'script': module.script}
 
 	## Insert the command output in the Database
 	def insert_cmd_output(self,output):

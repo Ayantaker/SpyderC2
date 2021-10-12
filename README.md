@@ -43,22 +43,40 @@
 	- the log.txt now shows useful logs like new victim joined, or task issued
 	- log is now opened autpmatically in a new terminal when main script is invoked. Needs Gnome-terminal
 
+- 12.10.2021
+	- Modules now have their own classes.
+	- Both Powershell and python script are now present as string in their respective module_name classes which are subclasses of Module
+
+## Feature Additions
+
+- Major
+
+	- Modules to be modular. Plug and play
+	- http payload encryption
+	- TLS
+	- New modules
+		- upload files
+		- dialog box popup for creds
+		- keylogger
+		- Registry Manipulation
 
 
-## Add these
-- Status of victim whether dead or alive
-- Show on main screen, new victim has joined
-- Cant send commands if dead
-- Kill victim
-- Funny names of victims
-- Modules to be modular. Plug and play
-- Idenitfication of admin privelges
-- Debug mode for the stager
-- Reregister victim if server stopped and then started, but victim still beaconing
+- Medium
 
+	- Kill victim
+	- Funny names of victims
+	- Debug mode for the stager
+	- Reregister victim if server stopped and then started, but victim still beaconing.
+	- search module
+	- parameterize modules
+	- Delay and Jitter
+
+
+- Minor
+	- Cant send commands if dead
+	- Idenitfication of admin privelges
 
 
 ## Note for next time dev
-
-- Fix the modules
-- Return from the powershell screenshot not proper
+ - Add comments to all parts of code
+ - RC checking for os commands
