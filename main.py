@@ -56,7 +56,7 @@ def main(args,db_object,server_logger):
 
 	display_main_help_menu()
 	print()
-	
+
 	while True:
 		print(colored("Enter server commands",'blue'))
 		cmd = str(input())
@@ -84,7 +84,7 @@ def main(args,db_object,server_logger):
 			Victim.show_victims()
 
 		## Matching use LKF0599NMU
-		if re.match(r'^use [\w\d]{1,10}$',cmd):
+		elif re.match(r'^use [\w\d]{1,10}$',cmd):
 
 			Victim.load_victims_from_db()
 			victim_id = re.findall(r'^use ([\w\d]{1,10})$',cmd)[0]

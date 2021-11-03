@@ -47,6 +47,14 @@
 	- Modules now have their own classes.
 	- Both Powershell and python script are now present as string in their respective module_name classes which are subclasses of Module
 
+- 04.11.2021
+	- Kill victim
+	- Modules are parametrized
+	- Can't send command if victim dead
+	- Task status updated from DB before showing info
+	- Victim now shows if admin privileges present with info command
+
+
 ## Feature Additions
 
 - Major
@@ -59,22 +67,23 @@
 		- dialog box popup for creds
 		- keylogger
 		- Registry Manipulation
+		- Process running
+		- shell
+		- File Exfiltration
 
 
 - Medium
 
-	- Kill victim
 	- Funny names of victims
 	- Debug mode for the stager
 	- Reregister victim if server stopped and then started, but victim still beaconing.
 	- search module
-	- parameterize modules
 	- Delay and Jitter
 
 
 - Minor
-	- Cant send commands if dead
-	- Idenitfication of admin privelges
+	- Modules should have admin required attribute and based on that they should be allowed to execute
+	- language as paramter of module
 
 
 ## Note for next time dev

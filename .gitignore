@@ -9,3 +9,4 @@ log.txt
 victim_data/
 main2.py
 logs/
+modules/collection/exfiltration.py

