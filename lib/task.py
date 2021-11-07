@@ -77,7 +77,8 @@ class Task:
 		## capitalize the first letter
 		module_name = self.command.title()
 		
-		module_obj = getattr(mod,module_name)(name=self.command,utility = utility, language=language)
+		## Needed module object is made here to be issued
+		module_obj = getattr(mod,module_name)(name=self.command,utility = utility, language=language,options=self.options)
 		
 		## Storing the mapping to access later
 		Module.module_task_id[self.task_id] = module_obj

