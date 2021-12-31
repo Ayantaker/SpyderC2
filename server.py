@@ -158,6 +158,7 @@ def main(db_object,server_logger):
 
 
 if __name__=="__main__":
+	
 	server_logger = Logger(logdir='logs',logfile='logs',verbose=False )
 	server_logger.setup()
 

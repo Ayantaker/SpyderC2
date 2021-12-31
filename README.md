@@ -53,11 +53,14 @@
 	- Can't send command if victim dead
 	- Task status updated from DB before showing info
 	- Victim now shows if admin privileges present with info command
-	
+
 - 07.11.2021
 	- Added exfiltration module
 	- Module script can now be modified as per user provided options before sending
 	- On victim side, script file is saved as command_taskid to avoid conflict
+
+- 01.01.2022
+	- No console on stager execution
 
 
 ## Feature Additions

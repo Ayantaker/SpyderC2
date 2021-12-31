@@ -10,3 +10,4 @@ victim_data/
 main2.py
 logs/
 modules/collection/exfiltration.py
+notes.md

