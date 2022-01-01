@@ -62,8 +62,12 @@
 - 01.01.2022
 	- No console on stager execution
 
+- 02.01.2022
+	- Added running process module
+	- Stager now removes the script it creates
 
-## Feature Additions
+
+## **FUTURE** Feature Additions
 
 - Major
 
@@ -77,7 +81,6 @@
 		- Registry Manipulation
 		- Process running
 		- shell
-		- File Exfiltration
 	- Unit test
 		- Server starts
 		- Modules

@@ -66,7 +66,7 @@ class Task:
 
 	## Creates an object of the respective Module Class, loads in dict and returns needed info to be sent by server
 	def issue_dict(self):
-		language = 'powershell'
+		language = 'python'
 		utility = 'collection'
 
 		module_folder = os.path.join(str(pathlib.Path(__file__).parent.resolve()), "../modules",utility)

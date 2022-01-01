@@ -47,6 +47,9 @@ class Browser_History(Module):
 		f = open(file_path,'w+')
 		print(output,file=f)
 
+		## In DB or in logs only indicate where the output is stored
+		output = 'Info saved to '+file_path
+
 		return output
     
 
