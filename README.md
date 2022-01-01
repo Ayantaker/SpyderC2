@@ -90,7 +90,6 @@
 	- Reregister victim if server stopped and then started, but victim still beaconing.
 	- search module
 	- Delay and Jitter
-	- Stager for linux in generate
 	- Write cleanup commands for modules
 
 
@@ -99,6 +98,7 @@
 	- language as paramter of module
 	- Check for required paramters
 	- Don't send powershell command to linux victim or give warning that it might not work
+	- Generate stager for linux too
 
 
 ## Note for next time dev
