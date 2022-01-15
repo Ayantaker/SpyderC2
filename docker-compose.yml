@@ -1,0 +1,38 @@
+version: '3'
+
+# Run as
+# docker-compose build; docker-compose up -d
+# Check with
+# docker ps
+# Then check the logs with
+# docker logs --tail 50 $service_name
+# docker-compose images
+# docker-compose logs --tail 20 service_name
+
+services:
+
+  spyder_mongo:
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: SpyderC2
+    volumes:
+      - ./SpyderC2/001_users.js:/docker-entrypoint-initdb.d/001_users.js:ro
+    logging:
+      driver: none
+    # volumes:
+    #   - ./mongo:/docker-entrypoint-initdb.d
+
+  spyder_python:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - spyder_mongo
+    environment:
+      MONGODB_DATABASE: SpyderC2
+      MONGODB_USERNAME: root
+      MONGODB_PASSWORD: password
+      MONGODB_HOSTNAME: spyder_mongo

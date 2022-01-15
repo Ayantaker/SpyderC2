@@ -123,7 +123,7 @@ def main(args,db_object,server_logger):
 
 if __name__=="__main__":
 	args = parser()
-	db_url = "mongodb://localhost:27017/"
+	db_url = f"mongodb://{os.environ['MONGODB_USERNAME']}:{os.environ['MONGODB_PASSWORD']}@{os.environ['MONGODB_HOSTNAME']}:27017/{os.environ['MONGODB_DATABASE']}"
 
 	## Setting up logging
 	server_logger = Logger(logdir='logs',logfile='logs',verbose=args.verbose )

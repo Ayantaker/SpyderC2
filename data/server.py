@@ -164,7 +164,7 @@ if __name__=="__main__":
 	server_logger = Logger(logdir='logs',logfile='logs',verbose=False )
 	server_logger.setup()
 
-	db_url = "mongodb://localhost:27017/"
+	db_url = f"mongodb://{os.environ['MONGODB_USERNAME']}:{os.environ['MONGODB_PASSWORD']}@{os.environ['MONGODB_HOSTNAME']}:27017/{os.environ['MONGODB_DATABASE']}"
 
 	db_object = Database(url=db_url)
 
