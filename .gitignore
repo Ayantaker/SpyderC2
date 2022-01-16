@@ -1,5 +1,2 @@
-data/tmp/*
-!data/tmp
 __pycache__
 victim_data/
-logs
