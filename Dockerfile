@@ -6,7 +6,7 @@ RUN pip3 install flask
 ## better to do with docker compose volume ?
 COPY data /root/SpyderC2 
 
-# CMD ["/usr/local/bin/python3" , "/root/SpyderC2/main.py"]
+# CMD ["/usr/local/bin/python3" , "/SpyderC2/main.py"]
 
 ## TO keep the conatiner running, and also if the main Spyder program crashes, container will not go down
 CMD ["tail", "-f" ,"/root/SpyderC2/logs/logs"]

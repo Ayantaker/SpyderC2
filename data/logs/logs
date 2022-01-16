@@ -1,0 +1,112 @@
+[32mInitiated database connection from main- mongodb://127.0.0.1:27017/SpyderC2[0m
+[34mYou can set these environment variables - MONGODB_USERNAME , MONGODB_PASSWORD , MONGODB_HOSTNAME , MONGODB_DATABASE[0m
+Creating database
+ * Serving Flask app "app" (lazy loading)
+ * Environment: production
+   WARNING: This is a development server. Do not use it in a production deployment.
+   Use a production WSGI server instead.
+ * Debug mode: off
+Traceback (most recent call last):
+  File "/home/ayan/Spyd[32mNew victim checked in - 713VXM7I3D , Windows[0m
+192.168.1.7 - - [15/Jan/2022 23:52:05] "[37mPOST /stage_0 HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:05] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:10] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:15] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:20] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:25] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:30] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:35] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:40] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:45] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:50] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:52:55] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:00] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:05] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:10] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:15] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:20] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:25] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:30] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:35] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:40] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:45] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:50] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:53:55] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:00] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:05] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:10] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:15] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:20] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:25] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:30] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:35] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:40] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:45] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:50] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:54:55] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:00] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:05] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:10] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:15] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:20] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:25] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:30] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:35] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:40] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:45] "[37mGET / HTTP/1.1[0m" 200 -
+[37mUpdated last seen of 713VXM7I3D[0m
+192.168.1.7 - - [15/Jan/2022 23:55:50] "[37mGET / HTTP/1.1[0m" 200 -
+D[0m
+INFO:  [32m2022-01-15 23:55:54.292040 - Logs opened in a new terminal[0m
+INFO:  [32m2022-01-15 23:55:54.292338 - Initiated database connection from main- mongodb://127.0.0.1:27017/SpyderC2[0m
+INFO:  [32m2022-01-15 23:57:11.650257 - Logs opened in a new terminal[0m
+INFO:  [32m2022-01-15 23:57:11.650527 - Initiated database connection from main- mongodb://127.0.0.1:27017/SpyderC2[0m
+INFO:  [32m2022-01-15 23:57:35.603976 - Logs opened in a new terminal[0m
+INFO:  [32m2022-01-15 23:57:35.604457 - Initiated database connection from main- mongodb://127.0.0.1:27017/SpyderC2[0m
+INFO:  [32m2022-01-15 23:58:09.712178 - Logs opened in a new terminal[0m
+INFO:  [32m2022-01-15 23:58:09.712496 - Initiated database connection from main- mongodb://127.0.0.1:27017/SpyderC2[0m

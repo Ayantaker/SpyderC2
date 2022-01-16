@@ -28,7 +28,7 @@ class Module:
 		option_hash = {}
 
 		while True:
-			print(colored(f'Interacting with {module}','green'))
+			print(colored(f"Interacting with {module}. Once done configuring module, press 'run' to run it on vicitim.",'green'))
 
 			cmd = str(input())
 			if re.match(r'^set ([^ ]+) ([^ ]+)$',cmd):

