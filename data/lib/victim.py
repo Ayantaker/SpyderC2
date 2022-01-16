@@ -105,7 +105,7 @@ class Victim:
 	## Displays the victim menu
 	def victim_menu(self):
 		self.display_victim_help_menu()
-		print(f"You are now interacting with the victim. To do bad stuff on victim, you might want to run {colored('modules','cyan')} commands to see the modules you can run and then use it by running '{colored('use <module_name>','cyan')}'")
+		print(f"\nYou are now interacting with the victim. To do bad stuff on victim, you might want to run {colored('modules','cyan')} commands to see the modules you can run and then use it by running '{colored('use <module_name>','cyan')}'\n")
 		while True:
 			print(colored("Enter victim based commands.",'blue'))
 			cmd = str(input())

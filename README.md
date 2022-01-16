@@ -70,6 +70,8 @@
 	- Added docker support
 	- Moved all files to data folder for easiness with docker
 	- Server URL is now replaced in stager
+	- Added Ascii art
+	- Some help text improvements
 
 
 ## **FUTURE** Feature Additions

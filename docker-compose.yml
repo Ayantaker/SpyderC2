@@ -20,8 +20,7 @@ services:
       MONGO_INITDB_DATABASE: SpyderC2
     volumes:
       - ./001_users.js:/docker-entrypoint-initdb.d/001_users.js:ro
-    logging:
-      driver: none
+    command: mongod --quiet --logpath /dev/null
     # volumes:
     #   - ./mongo:/docker-entrypoint-initdb.d
 

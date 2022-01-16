@@ -4,11 +4,11 @@ RUN pip3 install termcolor ## These can be made into requirements.txt which pyth
 RUN pip3 install pymongo
 RUN pip3 install flask
 ## better to do with docker compose volume ?
-COPY data /root/SpyderC2 
+COPY data /SpyderC2 
 
 # CMD ["/usr/local/bin/python3" , "/SpyderC2/main.py"]
 
 ## TO keep the conatiner running, and also if the main Spyder program crashes, container will not go down
-CMD ["tail", "-f" ,"/root/SpyderC2/logs/logs"]
+CMD ["tail", "-f" ,"/SpyderC2/logs/logs"]
 
 
