@@ -8,6 +8,7 @@ class Task:
 
 	mongoclient = None
 	tasks = {}
+	databasename = os.environ['MONGODB_DATABASE']
 
 	def __init__(self,victim_id,command,options,task_id,output=None,issued=False,add_db=True):
 
@@ -25,7 +26,7 @@ class Task:
 	## Loads the first uninssued task in database
 	@classmethod
 	def find_unissued_task(cls,victim_id):
-		mydb = cls.mongoclient["pythonc2"]
+		mydb = cls.mongoclient[cls.databasename]
 		tasks = mydb["tasks"]
 
 		## Finding only the commands for this victim id and which hasn't been issued yet
@@ -44,7 +45,7 @@ class Task:
 
 	## Updates the whole task according to the current object state
 	def update_task_to_db(self,attribute):
-		mydb = self.mongoclient["pythonc2"]
+		mydb = self.mongoclient[self.databasename]
 		tasks = mydb["tasks"]
 
 		h = {'task_id':self.task_id}
@@ -53,7 +54,7 @@ class Task:
 
 	## Updates the task issuance and output status from DB
 	def update_task_from_db(self):
-		mydb = self.mongoclient["pythonc2"]
+		mydb = self.mongoclient[self.databasename]
 		tasks = mydb["tasks"]
 
 		h = {'task_id':self.task_id}
@@ -91,7 +92,7 @@ class Task:
 	def insert_cmd_output(self,output):
 		self.output = output
 
-		mydb = self.mongoclient["pythonc2"]
+		mydb = self.mongoclient[self.databasename]
 		tasks = mydb["tasks"]
 
 		h = {'task_id':self.task_id}
@@ -101,7 +102,7 @@ class Task:
 	## Inserts a command issued to a victim in the db
 	def insert_cmd_db(self):
 		
-		mydb = self.mongoclient["pythonc2"]
+		mydb = self.mongoclient[self.databasename]
 		tasks = mydb["tasks"]
 
 		h = {'task_id': self.task_id,'victim_id': self.victim_id, 'command':self.command, 'options':self.options, 'output':self.output ,'issued': self.issued}

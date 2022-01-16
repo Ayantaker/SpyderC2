@@ -1,12 +1,5 @@
-tmp/
-test/
-test.py
+data/tmp/*
+!data/tmp
 __pycache__
-testexfil/
-exfiltration/
-commands.txt
-log.txt
 victim_data/
-main2.py
-logs/
-notes.md
+logs

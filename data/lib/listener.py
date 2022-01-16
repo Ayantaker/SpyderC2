@@ -8,7 +8,7 @@ class Listener:
 	## Class variable, since database url will be a constant for all listener
 	mongoclient = None
 	listeners = []
-
+	databasename = os.environ['MONGODB_DATABASE']
 	def __init__(self,port):
 		self.port = port
 		self.pid = None
@@ -16,7 +16,7 @@ class Listener:
 
 	@classmethod
 	def fetch_from_db(cls):
-		mydb = cls.mongoclient["pythonc2"]
+		mydb = cls.mongoclient[cls.databasename]
 		mycol = mydb["listeners"]
 
 		listeners = mycol.find()
@@ -51,7 +51,7 @@ class Listener:
 		listener_script = os.path.join(str(pathlib.Path(__file__).parent.resolve()), f'../server.py')
 		log_dir = os.path.join(str(pathlib.Path(__file__).parent.resolve()), f'../logs')
 
-		flask_process = subprocess.Popen(f'sudo nohup python3 {listener_script} > {log_dir}/logs 2>&1 &',stdout=subprocess.PIPE, 
+		flask_process = subprocess.Popen(f'nohup python3 {listener_script} > {log_dir}/logs 2>&1 &',stdout=subprocess.PIPE, 
 					shell=True, preexec_fn=os.setsid)
 		
 
@@ -67,7 +67,7 @@ class Listener:
 		print(self.process)
 
 	def add_to_db(self):
-		mydb = self.mongoclient["pythonc2"]
+		mydb = self.mongoclient[self.databasename]
 		mycol = mydb["listeners"]
 		
 		h = {'protocol':self.protocol, 'port': self.port, 'pid': self.pid}

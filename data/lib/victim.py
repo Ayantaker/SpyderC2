@@ -7,6 +7,7 @@ from lib.module import Module
 from termcolor import colored
 import readline
 import re
+import os
 
 
 class Victim:
@@ -14,6 +15,7 @@ class Victim:
 	mongoclient = None
 	victims = {}
 	module_hash = {'Windows' : ['screenshot','browser_history','exfiltration','running_processes'], 'Linux': ['screenshot','exfiltration','running_processes']}
+	databasename = os.environ['MONGODB_DATABASE']
 
 	def __init__(self,victim_id,platform,os_version,admin,status = 'Alive',lastseen = datetime.datetime.now(),add_db = True):
 		self.victim_id = victim_id
@@ -49,7 +51,8 @@ class Victim:
 	## This will load the victim info present in DB, created from server.py and instanitate objects for them.
 	@classmethod
 	def load_victims_from_db(cls):
-		mydb = cls.mongoclient["pythonc2"]
+
+		mydb = cls.mongoclient[cls.databasename]
 		victims = mydb["victims"]
 
 		victim_list = victims.find()
@@ -70,7 +73,7 @@ class Victim:
 
 	## Called from main side, to update the last seen and status according to db
 	def update_last_seen_status_from_db(self):
-		mydb = self.mongoclient["pythonc2"]
+		mydb = self.mongoclient[self.databasename]
 		victims = mydb["victims"]
 		h = {'victim_id':self.victim_id}
 
@@ -155,11 +158,10 @@ class Victim:
 
 	def add_victim_to_db(self):
 
-		mydb = self.mongoclient["pythonc2"]
+		mydb = self.mongoclient[self.databasename]
 		victims = mydb["victims"]
 
 		h = {'victim_id' : self.victim_id, 'platform' : self.platform ,'os_version' : self.os_version, 'admin': self.admin, 'status': self.status, 'lastseen' : self.lastseen}
-
 		victims.insert_one(h)
 
 
@@ -181,7 +183,7 @@ class Victim:
 		self.lastseen = time
 
 		## Update in DB too.. TODO - NEEDED?
-		mydb = self.mongoclient["pythonc2"]
+		mydb = self.mongoclient[self.databasename]
 		victims = mydb["victims"]
 		h = {'victim_id':self.victim_id}
 		victims.find_one_and_update(h,{ "$set": { "lastseen": time , "status": self.status} })

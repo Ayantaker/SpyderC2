@@ -1,4 +1,7 @@
+import os
+
 class Database:
+	databasename = os.environ['MONGODB_DATABASE']
 	def __init__(self,url):
 		import pymongo
 		self.url = url
@@ -11,17 +14,17 @@ class Database:
 
 		dblist = mongoclient.list_database_names()
 
-		if "pythonc2" not in dblist:
+		if self.databasename not in dblist:
 			print("Creating database")
-			mydb = mongoclient["pythonc2"]
+			mydb = mongoclient[self.databasename]
 
-		mydb = mongoclient["pythonc2"]
+		mydb = mongoclient[self.databasename]
 
 
 
 	## Drops the collections whenever the server quits
 	def drop_db(self):  
-		mydb = self.mongoclient["pythonc2"]
+		mydb = self.mongoclient[self.databasename]
 
 		tasks = mydb["tasks"]
 		tasks.drop()

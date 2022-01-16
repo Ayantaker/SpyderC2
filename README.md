@@ -66,6 +66,11 @@
 	- Added running process module
 	- Stager now removes the script it creates
 
+- 16.01.2020
+	- Added docker support
+	- Moved all files to data folder for easiness with docker
+	- Server URL is now replaced in stager
+
 
 ## **FUTURE** Feature Additions
 
