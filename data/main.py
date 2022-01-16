@@ -26,6 +26,10 @@ def parser():
 	return args
 
 
+def display_ascii_art():
+	f = open(os.path.join(PATH,'ascii_art'),'r')
+	print(''.join([line for line in f]))
+
 def display_main_help_menu():
 	print(' --------------------------------------')
 	print('|          SERVER HELP MENU            |')
@@ -146,11 +150,11 @@ def main(args,db_object,server_logger):
 
 def get_db_info():
 	if 'MONGODB_USERNAME' not in os.environ: 
-		print(colored("Enter mongodb username",'blue'))
+		print(colored("Enter mongodb username if any",'blue'))
 		os.environ['MONGODB_USERNAME'] = str(input())
 
 	if 'MONGODB_PASSWORD' not in os.environ: 
-		print(colored("Enter mongodb password",'blue'))
+		print(colored("Enter mongodb password if any",'blue'))
 		os.environ['MONGODB_PASSWORD'] = str(input())
 
 	if 'MONGODB_HOSTNAME' not in os.environ: 
@@ -175,6 +179,7 @@ def get_db_info():
 
 if __name__=="__main__":
 	args = parser()
+	display_ascii_art()
 	db_url = get_db_info()
 	from lib.listener import Listener
 	from lib.database import Database
