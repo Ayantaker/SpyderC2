@@ -39,6 +39,9 @@ def main(db_object,server_logger):
 		cmds.find_one_and_update(h,{ "$set": { "output": output } })
 
 
+	## Checks if we are running on docker container
+	def docker():
+		return os.path.isfile('/.dockerenv')
 
 	####################################### General beacon and sends task  ####################################
 
@@ -104,11 +107,11 @@ def main(db_object,server_logger):
 			## Handling for various kind of tasks, also passing the task/module options set by user
 			output = Module.module_task_id[task_id].handle_task_output(request.data,Task.tasks[task_id].options,victim_id,)
 
-			server_logger.info_log(f"Recieved task output for task ID - {task_id} , Victim ID - {victim_id} , Command - {cmd}, Output - {colored(output,'cyan')}",'green')
+			server_logger.info_log(f"Recieved task output for task ID - {task_id} , Victim ID - {victim_id} , Command - {cmd}, Output - {colored('File dumped to '+output.split('../../')[1]+' accessible both though host and container.','cyan')}",'green')
 
 			
 			task_obj = Task.tasks[task_id]
-			task_obj.insert_cmd_output(output)
+			task_obj.insert_cmd_output(f"File dumped to {output.split('../../')[1]} accessible both though host and container")
 
 			return "OK"
 

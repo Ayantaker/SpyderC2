@@ -51,13 +51,18 @@ class Listener:
 		listener_script = os.path.join(str(pathlib.Path(__file__).parent.resolve()), f'../server.py')
 		log_dir = os.path.join(str(pathlib.Path(__file__).parent.resolve()), f'../logs')
 
-		flask_process = subprocess.Popen(f'nohup python3 {listener_script} > {log_dir}/logs 2>&1 &',stdout=subprocess.PIPE, 
-					shell=True, preexec_fn=os.setsid)
-		
+		try:
+			flask_process = subprocess.Popen(f'nohup python3 {listener_script} > {log_dir}/logs 2>&1 &',stdout=subprocess.PIPE, 
+						shell=True, preexec_fn=os.setsid)
+			
 
-		## Should be changed
-		self.pid = flask_process.pid+1
-		self.listeners.append(self)
+			## Should be changed
+			self.pid = flask_process.pid+1
+			self.listeners.append(self)
+		except subprocess.CalledProcessError as grepexc:
+			return False
+
+		return True
 
 
 		

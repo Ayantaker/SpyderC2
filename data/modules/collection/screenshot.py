@@ -12,7 +12,7 @@ class Screenshot(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'path' : 'Directory to download the screenshot on the server. Default is victim_data/<victim_id>' 
+			'path' : 'Directory to download the screenshot on the server. Default is shared/victim_data/<victim_id>' 
 		}
 		return h
 
@@ -26,7 +26,7 @@ class Screenshot(Module):
 	def handle_task_output(self,data,options,victim_id):
 
 		## Default Dumping path
-		dump_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../victim_data',victim_id)
+		dump_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../shared/victim_data',victim_id)
 
 		if not os.path.exists(dump_path):
 			os.makedirs(dump_path)
@@ -50,7 +50,7 @@ class Screenshot(Module):
 			f.write(decoded_string)
 		f.close()
 
-		output = 'Screeshot saved to '+ss_path
+		output = ss_path
 		return output
 
 

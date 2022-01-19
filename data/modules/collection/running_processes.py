@@ -12,7 +12,7 @@ class Running_Processes(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'path' : 'Directory on the attacker machine where the files are downloaded',
+			'path' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>',
 		}
 		return h
 
@@ -31,7 +31,7 @@ class Running_Processes(Module):
 
 
 		## Default Dumping path
-		dump_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../victim_data',victim_id)
+		dump_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../shared/victim_data',victim_id)
 
 		if not os.path.exists(dump_path):
 			os.makedirs(dump_path)
@@ -53,7 +53,7 @@ class Running_Processes(Module):
 		print(output,file=f)
 
 		## In DB or in logs only indicate where the output is stored
-		output = 'Info saved to '+file_path
+		output = file_path
 		return output
 
 	def script_python(self,options):

