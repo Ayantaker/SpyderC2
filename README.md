@@ -1,11 +1,54 @@
 **This is the beginning of a python based C2 framework**
 
-## Initial Goal
-- Have a python based stager which when executed on windows will give out the current directory information.
-- Have a python based http listener, which will print the information
+
+## Installation
+
+- It's much easier to use the docker version to not run into dependency issues.
+- Install Docker for your distro
+- Get Docker Compose from [here](https://docs.docker.com/compose/install/)
+- Now simply run :
+
+	```bash
+	sudo docker-compose up
+	```
+- Once the 2 containers spins up (Python and MongoDB), run the following :
+
+	```bash
+	sudo docker exec -it spyderc2_server python3 SpyderC2/main.py
+	````
+
+- You should be greeted with SpyderC2 server console. Now follow the below steps to try out the framework
 
 
-## Current Condition
+
+## How to use:
+
+- First run a listener, by running http. Check in the logs if the listener is started successfully.
+
+- Then you would want to generate a payload/stager , by running generate command. Enter your host IP address when server URL is asked. If you are running on your host machine, it will be generated automatically, if running on docker, you would get a help text to generate the stager.
+
+- Then copy this stager.exe to the victim Windows machine.
+
+- Double click the stager.exe on the victim. You should see a new victim with an ID in logs.
+
+- Check the vicitm list using 'vicitms' command.
+
+- To do evil stuff on victim, run 'use <victim_id>'.
+
+- Now you are in victim help menu. Run 'modules' to see the stuff you can run on teh victim.
+
+- To run a module, use <module_name> , ex : use screenshot.
+
+- You can then modify the arguments available for that module, Ex , you can set the path where screenhsot will be saved on the attacker/host machine, using 'set path /home'. It's optional as by default they will be stored in victim/<victim_id> folder.
+
+- Now to run this module on victim, execute - 'run'
+
+- Check in the logs you will see the script/task bein issue to the victim, and logs will also show where the output/screenshot is being stored.
+
+
+
+## Progress
+
 - Previously
 	- Running the program will make a stager exe, start a server. The actual files in the directory where the stager.exe is run will be passed to the C2 server.
 	- The flask server now runs as a separate process and the server is killed whenever the main script exits.
@@ -73,12 +116,15 @@
 	- Added Ascii art
 	- Some help text improvements
 
+- 19.01.2020
+	- Minor fixes here and there
+	- Added instructions on how to use
 
-## **FUTURE** Feature Additions
+
+## **FUTURE** Additions
 
 - Major
 
-	- Modules to be modular. Plug and play
 	- http payload encryption
 	- TLS
 	- New modules
@@ -87,6 +133,7 @@
 		- keylogger
 		- Registry Manipulation
 		- Process running
+		- Persistence
 		- shell
 	- Unit test
 		- Server starts
@@ -109,8 +156,3 @@
 	- Check for required paramters
 	- Don't send powershell command to linux victim or give warning that it might not work
 	- Generate stager for linux too
-
-
-## Note for next time dev
- - Add comments to all parts of code
- - RC checking for os commands

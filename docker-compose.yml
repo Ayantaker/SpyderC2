@@ -11,31 +11,38 @@ version: '3'
 
 services:
 
-  spyder_mongo:
+  mongo:
     image: mongo
     restart: always
+    container_name: spyderc2_db
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: SpyderC2
     volumes:
       - ./001_users.js:/docker-entrypoint-initdb.d/001_users.js:ro
-    command: mongod --quiet --logpath /dev/null
+    command: ['--logpath', '/dev/null']
     # volumes:
     #   - ./mongo:/docker-entrypoint-initdb.d
 
-  spyder_python:
+  python:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: spyderc2_server
     depends_on:
-      - spyder_mongo
+      - mongo
     volumes:
-      - ./data/tmp:/root/SpyderC2/tmp
+      - ./data/tmp:/home/attacker/SpyderC2/tmp
     environment:
       MONGODB_DATABASE: SpyderC2
       MONGODB_USERNAME: root
       MONGODB_PASSWORD: password
-      MONGODB_HOSTNAME: spyder_mongo
+      MONGODB_HOSTNAME: mongo
     ports:
       - "8080:8080"
+    healthcheck:
+        test: ["CMD", "echo", "Server Started"]
+        interval: 1s
+        timeout: 1s
+        retries: 5
