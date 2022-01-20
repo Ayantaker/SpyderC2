@@ -40,7 +40,7 @@ services:
       MONGODB_PASSWORD: password
       MONGODB_HOSTNAME: mongo
     ports:
-      - "8080:8080"
+      - 8080-8100:8080-8100
     healthcheck:
         test: ["CMD", "echo", "Server Started"]
         interval: 1s

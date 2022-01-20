@@ -3,17 +3,29 @@ import os
 import signal
 import pdb
 import pathlib
+import socket
 
 class Listener:
 	## Class variable, since database url will be a constant for all listener
 	mongoclient = None
 	listeners = []
 	databasename = os.environ['MONGODB_DATABASE']
+
 	def __init__(self,port):
 		self.port = port
 		self.pid = None
 		self.protocol = 'tcp'
+		self.status = 'Stopped'
 
+
+	## Checks whether a listener object already exists for that port, if true returns that object
+	@classmethod
+	def listener_exists(cls,port):
+		for listener in cls.listeners:
+			if listener.port == port:
+				return listener
+
+		return False
 	@classmethod
 	def fetch_from_db(cls):
 		mydb = cls.mongoclient[cls.databasename]
@@ -34,14 +46,27 @@ class Listener:
 	@classmethod
 	def show_listeners(cls):
 		for listener in cls.listeners:
-			print(f'Port - {listener.port} , Process ID - {listener.pid}, Protocol - {listener.protocol}')
+			listener.is_listener_running()
+			print(f'Port - {listener.port} , Process ID - {listener.pid}, Protocol - {listener.protocol} , Status - {listener.status}')
 
 	@classmethod
 	def kill_all_listeners(cls):
 		for listener in cls.listeners:
-			listener.kill_listener()
-			print(f'Killed listeners -> Port - {listener.port} , Process ID - {listener.pid}, Protocol - {listener.protocol}')
+			## Only kill running listeners
+			listener.is_listener_running()
+			if listener.status == 'Running':
+				listener.kill_listener()
+				print(f'Killed listeners -> Port - {listener.port} , Process ID - {listener.pid}, Protocol - {listener.protocol}')
 
+
+	def is_listener_running(self):
+	    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+	        if s.connect_ex(('localhost', int(self.port))) == 0:
+	        	self.status = 'Running'
+	        	return True
+	        else:
+	        	self.status = 'Stopped'
+	        	return False
 
 	def kill_listener(self):
 		os.killpg(os.getpgid(self.pid), signal.SIGTERM)
@@ -51,33 +76,31 @@ class Listener:
 		listener_script = os.path.join(str(pathlib.Path(__file__).parent.resolve()), f'../server.py')
 		log_dir = os.path.join(str(pathlib.Path(__file__).parent.resolve()), f'../logs')
 
-		try:
-			flask_process = subprocess.Popen(f'nohup python3 {listener_script} > {log_dir}/logs 2>&1 &',stdout=subprocess.PIPE, 
-						shell=True, preexec_fn=os.setsid)
-			
+		if not self.is_listener_running():
+			flask_process = subprocess.Popen(f'nohup python3 {listener_script} {self.port} > {log_dir}/logs 2>&1 &', stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+			self.pid = flask_process.pid +1
+			if self not in self.listeners: self.listeners.append(self)
 
-			## Should be changed
-			self.pid = flask_process.pid+1
-			self.listeners.append(self)
-		except subprocess.CalledProcessError as grepexc:
+			return True
+		else:
+			## Port in use
 			return False
 
-		return True
-
-
+		
 		
 
 	def list_listeners(self):
 		print(self.port)
 		print(self.process)
 
-	def add_to_db(self):
-		mydb = self.mongoclient[self.databasename]
-		mycol = mydb["listeners"]
+	## no real need to add listeners to db
+	# def add_to_db(self):
+	# 	mydb = self.mongoclient[self.databasename]
+	# 	mycol = mydb["listeners"]
 		
-		h = {'protocol':self.protocol, 'port': self.port, 'pid': self.pid}
+	# 	h = {'protocol':self.protocol, 'port': self.port, 'pid': self.pid}
 		
-		mycol.insert_one(h)
+	# 	mycol.insert_one(h)
 
 
 class HTTPListener(Listener):

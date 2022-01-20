@@ -120,6 +120,12 @@
 	- Minor fixes here and there
 	- Added instructions on how to use
 
+- 20.01.2020
+	- Added -d flag to not launch logs automatically
+	- Proper checking of whether listener is preocupied or not
+	- listener can now be launched at any port. Port range for docker limited to 8080-8100 due to increased docker up times in case huge amount of ports forwarded. Can be changed from docker-compose.yml
+	- Added capabiltity to kill the process if port is already occupied (Not for docker)
+
 
 ## **FUTURE** Additions
 

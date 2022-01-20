@@ -56,15 +56,17 @@ class Logger:
 		self.filelogger.debug(colored(f'{datetime.datetime.now()} - {message}',color))
 
 		
-	def launch_logs_screen(self):
+	def launch_logs_screen(self,args):
 		## launch the logs in new tab if gnome terminal available
 		log_cmd  = f"tail -f {os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../logs/logs')}"
 		cmd = f'gnome-terminal -e \'bash -c "{log_cmd}; bash"\' --tab 2>&1'
 
-	
-		process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-		process.wait()
-		if process.returncode == 0:
-			self.info_log("Logs opened in a new terminal",'green')
+		if not args.detached:
+			process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+			process.wait()
+			if process.returncode == 0:
+				self.info_log("Logs opened in a new terminal",'green')
+			else:
+				self.info_log(f"Tried opening logs in a new terminal, Failed. Please check if Gnome-terminal installed. You can launch maually by running {colored(log_cmd,'cyan')}",'yellow')
 		else:
-			self.info_log(f"Tried opening logs in a new terminal, Failed. Please check if Gnome-terminal installed. You can launch maually by running {log_cmd}",'yellow')
+			self.info_log(f"You can launch logs maually by running {colored(log_cmd,'cyan')}",'green')

@@ -6,9 +6,8 @@ RUN pip3 install flask
 
 
 
-## better to do with docker compose volume ?
 COPY data /home/attacker/SpyderC2
-
+WORKDIR /home/attacker/SpyderC2
 
 
 ## TO keep the conatiner running, and also if the main Spyder program crashes, container will not go down
