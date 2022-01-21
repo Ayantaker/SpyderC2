@@ -19,7 +19,17 @@
 
 - You should be greeted with SpyderC2 server console. Now follow the below steps to try out the framework
 
+## Few notable features
 
+- Supports windows and linux victims
+- Docker support
+- Evil stuff/modules you can do/run on your victim :
+	- Taking Screenshots
+	- Taking out Browser History
+	- See the running processes
+	- File download/exfiltration
+- New modules are easy to write and integrate
+- No window pops up when stager is executed on victim.
 
 ## How to use:
 

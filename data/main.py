@@ -336,6 +336,7 @@ if __name__=="__main__":
 
 	try:
 		main(args,db_object,server_logger)
-	except KeyboardInterrupt:
+	except Exception as e:
+		server_logger.info_log(e,'red')
 		Listener.kill_all_listeners()
 		db_object.drop_db()
