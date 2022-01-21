@@ -1,4 +1,4 @@
-						 # Spyder C2 Framework
+# SpyderC2 Framework
 
 					              (
 					               )
