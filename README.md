@@ -125,6 +125,8 @@
 	- Proper checking of whether listener is preocupied or not
 	- listener can now be launched at any port. Port range for docker limited to 8080-8100 due to increased docker up times in case huge amount of ports forwarded. Can be changed from docker-compose.yml
 	- Added capabiltity to kill the process if port is already occupied (Not for docker)
+	- Stager generation for linux
+	- Language for module now configureable
 
 
 ## **FUTURE** Additions

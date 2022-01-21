@@ -28,7 +28,6 @@ class Module:
 		option_hash = {}
 
 		while True:
-			print(colored(f"Interacting with {module}. Once done configuring module, press 'run' to run it on vicitim.",'green'))
 
 			cmd = str(input())
 			if re.match(r'^set ([^ ]+) ([^ ]+)$',cmd):
@@ -68,11 +67,12 @@ class Module:
 		return module_options
 	@classmethod
 	def show_options(cls,module,utility):
-		
+		print(colored(f"Interacting with {colored(module,'cyan')}. You can configure the options below by {colored('set <option_name> <option_value>','cyan')}. Once done configuring module, press {colored('run','cyan')} to run it on vicitim.",'green'))
 		module_options = cls.get_options(module,utility)
 		print(' --------------------------------------')
 		print('|          MODULE OPTIONS             |')
 		print(' --------------------------------------')
+
 
 		for key in module_options.keys():
 			print(f"{colored(key,'cyan')} - {module_options[key]}")

