@@ -1,4 +1,20 @@
-**This is the beginning of a python based C2 framework**
+# Spyder C2 Framework
+
+              (
+               )
+              (
+        /\  .-"""-.  /\
+       //\\/  ,,,  \//\\
+       |/\| ,;;;;;, |/\|
+       //\\\;-"""-;///\\
+      //  \/  C2  \/  \\
+     (| ,-_| \||/ |_-, |)
+       //`__\.-.-./__`\\
+      // /.-(() ())-.\ \\
+     (\ |)   '---'   (| /)
+      ` (|           |) `
+         \)          (/
+            SPYDERC2
 
 
 ## Installation
@@ -30,6 +46,7 @@
 	- File download/exfiltration
 - New modules are easy to write and integrate
 - No window pops up when stager is executed on victim.
+
 
 ## How to use:
 
