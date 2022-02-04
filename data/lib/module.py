@@ -24,11 +24,11 @@ class Module:
 
 	@classmethod
 	def module_menu(cls,module,utility):
-		module_options = cls.get_options(module,utility)
+		module_options,description = cls.get_options(module,utility)
 		option_hash = {}
 
 		while True:
-
+			print(colored(f"\n(SpyderC2: Victim: Module) {colored(module,'cyan')} > ",'red'), end='')
 			cmd = str(input())
 			if re.match(r'^set ([^ ]+) ([^ ]+)$',cmd):
 				info = re.findall(r'^set ([^ ]+) ([^ ]+)$',cmd)
@@ -50,6 +50,8 @@ class Module:
 			elif cmd == 'back' or cmd == 'exit':
 				## TODO handle this
 				return False
+			else:
+				print(f"Not supported. Type {colored('help','cyan')} to see commands supported.")
 
 
 	@classmethod
@@ -63,12 +65,15 @@ class Module:
 		module_name = module.title()
 		
 		module_options = getattr(mod,module_name).module_options()
+		description = getattr(mod,module_name).description
 
-		return module_options
+		return module_options,description
 	@classmethod
 	def show_options(cls,module,utility):
-		print(colored(f"Interacting with {colored(module,'cyan')}. You can configure the options below by {colored('set <option_name> <option_value>','cyan')}. Once done configuring module, press {colored('run','cyan')} to run it on vicitim.",'green'))
-		module_options = cls.get_options(module,utility)
+		print(colored(f"\n\nInteracting with {colored(module,'cyan')}. You can configure the options below by {colored('set <option_name> <option_value>','cyan')}. Once done configuring module, press {colored('run','cyan')} to run it on vicitim.",'green'))
+		module_options,description = cls.get_options(module,utility)
+
+		print(f"\n{colored(module.upper(),'blue')} : {description}\n")
 		print(' --------------------------------------')
 		print('|          MODULE OPTIONS             |')
 		print(' --------------------------------------')

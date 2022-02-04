@@ -9,6 +9,9 @@ sys.path.append(os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../..
 from module import Module
 
 class Running_Processes(Module):
+	description = """This module provides details about various processes running on the victim.
+		In case of python payload csv is provided, in case of powershell txt file is given."""
+
 	@classmethod
 	def module_options(cls):
 		h = {
@@ -18,14 +21,11 @@ class Running_Processes(Module):
 
 	def __init__(self,name,utility,language,options):
 
-		description = """This module provides details about various processes running on the victim.
-		In case of python payload csv is provided, in case of powershell txt file is given."""
-
 		## We are loading the script in the script variable here
-		super(Running_Processes, self).__init__(name,description,utility,language,getattr(self,f"script_{language}")(options))    
+		super(Running_Processes, self).__init__(name,self..description,utility,language,getattr(self,f"script_{language}")(options))    
 
 	## This class is called when victim returns the output for the task of this module. What is to be done with the output is defined here
-	def handle_task_output(self,data,options,victim_id):
+	def handle_task_output(self,data,options,victim_id,task_id):
 		## Comes as a bytes object, so changing to string
 		output = data.decode('utf-8')
 
@@ -37,9 +37,9 @@ class Running_Processes(Module):
 			os.makedirs(dump_path)
 
 		if self.language == 'python':
-			filename = "runningprocesses_"+time.strftime("%Y%m%d-%H%M%S")+".csv"
+			filename = f"runningprocesses_{time.strftime("%Y%m%d-%H%M%S")}_{task_id}.csv"
 		else:
-			filename = "runningprocesses_"+time.strftime("%Y%m%d-%H%M%S")+".txt"
+			filename = f"runningprocesses_{time.strftime("%Y%m%d-%H%M%S")}_{task_id}.txt"
 
 		file_path = os.path.join(dump_path,filename)
 

