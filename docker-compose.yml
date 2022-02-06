@@ -21,9 +21,9 @@ services:
       MONGO_INITDB_DATABASE: SpyderC2
     volumes:
       - ./001_users.js:/docker-entrypoint-initdb.d/001_users.js:ro
+      - ./db:/data/db
     command: ['--logpath', '/dev/null']
-    # volumes:
-    #   - ./mongo:/docker-entrypoint-initdb.d
+      
 
   python:
     build:

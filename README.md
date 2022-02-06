@@ -168,6 +168,7 @@
 	- Victims can now re-register (if server or victim dies)
 	- Clearing database on exit/error is now optional with -c flag
 	- Fixed few issues
+	- DB in docker now consistent
 
 
 ## For **FUTURE**
