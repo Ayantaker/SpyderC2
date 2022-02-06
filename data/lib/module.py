@@ -28,8 +28,7 @@ class Module:
 		option_hash = {}
 
 		while True:
-			print(colored(f"\n(SpyderC2: Victim: Module) {colored(module,'cyan')} > ",'red'), end='')
-			cmd = str(input())
+			cmd = str(input(colored(f"\n(SpyderC2: Victim: Module) {colored(module,'cyan')} > ",'red')))
 			if re.match(r'^set ([^ ]+) ([^ ]+)$',cmd):
 				info = re.findall(r'^set ([^ ]+) ([^ ]+)$',cmd)
 				## TODO - error handling
@@ -50,6 +49,9 @@ class Module:
 			elif cmd == 'back' or cmd == 'exit':
 				## TODO handle this
 				return False
+			elif cmd == '':
+				print()
+				pass
 			else:
 				print(f"Not supported. Type {colored('help','cyan')} to see commands supported.")
 

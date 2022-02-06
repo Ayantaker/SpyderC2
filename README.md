@@ -163,6 +163,12 @@
 	- Added a persistence module - Registrykey (Powershell and python). Also utility is not hardcoded.
 	- Prettified input a bit
 
+- 06.02.2022
+	- Victim ID now not random, instead part of a hash which identifies a victim
+	- Victims can now re-register (if server or victim dies)
+	- Clearing database on exit/error is now optional with -c flag
+	- Fixed few issues
+
 
 ## For **FUTURE**
 

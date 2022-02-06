@@ -33,7 +33,7 @@ class Exfiltration(Module):
 		if not os.path.exists(dump_path):
 			os.makedirs(dump_path)
 
-		filename = f"{os.path.basename(options['location'])}_{task_id}.zip"
+		filename = f"exfiltration_file_{task_id}.zip"
 		filepath = os.path.join(dump_path,filename)
 
 		if 'path' in  options:
@@ -78,8 +78,11 @@ class Exfiltration(Module):
 		## TODO - make this through a loop for all params
 		## TODO - this should be required parameter
 		if 'location' in options:
-			script = script.replace('##location##',options['location'])
+			value = options['location']
+		else:
+			value = options['stager_location']
 
+		script = script.replace('##location##',value.replace('\\','\\\\'))
 		return script
 
 
@@ -90,7 +93,11 @@ class Exfiltration(Module):
 		return $encoded"""
 
 		if 'location' in options:
-			script = script.replace('##location##',options['location'])
+			value = options['location']
+		else:
+			value = options['stager_location']
+
+		script = script.replace('##location##',value)
 
 		return script
 

