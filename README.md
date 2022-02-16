@@ -16,6 +16,11 @@
 					         \)          (/
 					            SPYDERC2
 
+## CAUTION
+
+NOTE : This is a hobby project and is solely created for educational/learning purposes. The author doesn't provide any warranty nor will take any liabilities for any damage caused due to usage of the framework.
+
+
 ## Few notable features
 
 - Supports windows and linux victims

