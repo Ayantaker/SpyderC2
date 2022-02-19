@@ -14,7 +14,7 @@ class Screenshot(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'path' : 'Directory to download the screenshot on the server. Default is shared/victim_data/<victim_id>' 
+			'path' : {'desc' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>', 'required' : False}
 		}
 		return h
 

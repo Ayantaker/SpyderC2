@@ -14,8 +14,8 @@ class Exfiltration(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'path' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>',
-			'location' : 'Directory or file on victim to exfiltrate'
+			'path' : {'desc' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>', 'required' : False},
+			'location' : {'desc': 'Path of directory or file on victim to exfiltrate.','required': True}
 		}
 		return h
 

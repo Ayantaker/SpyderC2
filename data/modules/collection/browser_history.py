@@ -14,7 +14,7 @@ class Browser_History(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'path' : 'Path to dump the history and bookmarks. Default is shared/victim_data/<victim_id>.' 
+			'path' : {'desc' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>', 'required' : False} 
 		}
 		return h
 

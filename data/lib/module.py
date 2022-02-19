@@ -19,12 +19,22 @@ class Module:
 		self.script = script
 
 	@classmethod
-	def module_help_menu(self):
+	def module_help_menu(cls):
 		pass
+
+	## takes in the option hash defined in each modules and returns the required ones
+	@classmethod
+	def get_required_options(cls,module_options):
+		required_options = []
+		for option_name in module_options.keys():
+			if module_options[option_name]['required'] == True:
+				required_options.append(option_name)
+		return required_options
 
 	@classmethod
 	def module_menu(cls,module,utility):
 		module_options,description = cls.get_options(module,utility)
+		required_options = cls.get_required_options(module_options)
 		option_hash = {}
 
 		while True:
@@ -42,8 +52,17 @@ class Module:
 					print(colored(f"{option} set to {value}",'green'))
 			elif cmd == 'options':
 					cls.show_options(module,utility)
+
 			elif cmd == 'execute' or cmd == 'run':
-				return option_hash
+				unfilled_options = [item for item in required_options if item not in list(option_hash.keys())]
+
+				if len(unfilled_options) > 0 :
+					## User needs to set values for these options as they are required
+					print(colored(f"Set some values for these options as they are required : {', '.join(unfilled_options)}. Use : set <option_name> <option_value>",'yellow'))
+					continue
+				else:
+					return option_hash
+
 			elif cmd == 'help':
 				cls.module_help_menu()
 			elif cmd == 'back' or cmd == 'exit':
@@ -72,14 +91,15 @@ class Module:
 		return module_options,description
 	@classmethod
 	def show_options(cls,module,utility):
-		print(colored(f"\n\nInteracting with {colored(module,'cyan')}. You can configure the options below by {colored('set <option_name> <option_value>','cyan')}. Once done configuring module, press {colored('run','cyan')} to run it on vicitim.",'green'))
+		print(colored(f"\n\nInteracting with {colored(module,'cyan')}. You can configure the options below by {colored('set <option_name> <option_value>','cyan')}. Once done configuring module, press {colored('run','cyan')} to run it on vicitim."))
 		module_options,description = cls.get_options(module,utility)
 
 		print(f"\n{colored(module.upper(),'blue')} : {description}\n")
-		print(' --------------------------------------')
-		print('|          MODULE OPTIONS             |')
-		print(' --------------------------------------')
+		print(' --------------------------------------------------')
+		print('|          MODULE CONFIGURABLE OPTIONS             |')
+		print(' --------------------------------------------------')
 
-
+		print("\nName		Required	Description")
+		print("-----		---------	------------")
 		for key in module_options.keys():
-			print(f"{colored(key,'cyan')} - {module_options[key]}")
+			print(f"{colored(key,'cyan')}		{module_options[key]['required']}		{module_options[key]['desc']}")

