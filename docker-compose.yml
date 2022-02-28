@@ -14,7 +14,7 @@ services:
   mongo:
     image: mongo
     restart: always
-    container_name: spyderc2_db
+    container_name: db
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: password
@@ -29,7 +29,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: spyderc2_server
+    container_name: server
     depends_on:
       - mongo
     volumes:

@@ -1,4 +1,3 @@
-
 import pdb
 import pymongo
 import re
@@ -13,6 +12,35 @@ import pathlib
 import signal
 import socket
 import traceback
+from rich.prompt import Prompt
+from rich.traceback import install
+from rich.console import Console
+from rich.prompt import Confirm
+
+from lib.style import Style
+
+install(show_locals=True,max_frames=5)
+console = Console()
+
+def create_table(title,column,row):
+	from rich.console import Console
+	from rich.table import Table
+
+	table = Table(title=title)
+
+	for key in column.keys():
+		attrs = column[key]
+		table.add_column(key,**attrs)
+
+	for key in row.keys():
+		attrs = row[key]
+		table.add_row(*attrs)
+
+	
+
+	console = Console()
+	console.print(table, justify="center")
+
 
 ## Provides command history like bash to input
 import readline
@@ -34,47 +62,43 @@ def display_ascii_art():
 	print(''.join([line for line in f]))
 
 def display_main_help_menu():
-	print()
-	print(' --------------------------------------')
-	print('|          SERVER HELP MENU            |')
-	print(' --------------------------------------')
-	commands = {'http':'Starts a new http listener.' , 'listeners': 'List existing http listener running.', 'kill_listeners': 'Kill the http listener running', 'generate': 'generates the stager in exe format in shared/tmp folder', 'victims': 'Show the currently connected victims', 'use <VICTIM ID>' : 'Interact with connected victims','exit': 'exit the program.'}
+	print("")
+	column = {
+	"Command" : {'style':"cyan"},
+	"Description":{'justify':"left", 'no_wrap':True}
+	}
 
-	for command in commands.keys():
-		print(colored(command,'cyan') + " - " + commands[command])
+	row = [
+		["http", "Starts a new http listener."],
+		["listeners", "List existing http listener running."],
+		["kill_listeners", "Kill the http listener running"],
+		["generate", "generates the stager in exe format in shared/tmp folder"],
+		["victims", "Show the currently connected victims"],
+		["use <VICTIM ID>", "Interact with connected victims."],
+		["exit", "exit the program."]
+	]
+	s = Style()
+	s.create_table("SERVER HELP MENU",column,row,'center')
+
+
 
 ## Checks if we are running on docker container
 def docker():
 	return os.path.isfile('/.dockerenv')
 
 def get_victim_os():
-	while True:
-		print(colored("Enter OS of victim - windows/linux",'cyan'))
-		os_name = str(input())
-		os_name = os_name.lower()
-		if os_name in ['windows','linux']:
-			return os_name
-		elif os_name in ['back','exit']:
-			return False
-		else:
-			print(colored("Sorry not supported os",'yellow'))
-			continue
+	input = Prompt.ask("Enter Victim OS", choices=["windows", "linux", "back"], default="windows")
+	return (False if input == 'back' else input)
 
 ## Stager.py has needs the server url where it will connect back and copies the new stager to tmp
 def fill_server_url():
-	print(colored("Enter listener IP",'cyan'))
-	server_ip = str(input())
-
+	server_ip = Prompt.ask("Enter listener IP", default='0.0.0.0')
 	while True:
-		print(colored("Enter listener port. Default is 8080",'cyan'))
-		server_port = str(input())
-		if server_port == '':
-			server_port = '8080'
-			break
-		elif not server_port.isdigit():
+		server_port = Prompt.ask("Enter listener port", default='8080')
+		if not server_port.isdigit():
 			print("Please enter Port in integer")
-		else:
-			break
+			continue
+		break
 
 	stager_path = os.path.join(PATH,'stager.py')
 
@@ -88,22 +112,28 @@ def fill_server_url():
 	f.close()
 
 def print_help_text():
-	print(f"""
-To test this framework :
+	print("")
+	column = {
+		"S.N" : {'style':"cyan"},
+		"Instruction":{'justify':"left", 'style':"white",'no_wrap':False}
+	}
 
-1. First run a listener, by running {colored('http','cyan')}. Check in the logs if the listener is started successfully.
-2. Then you would want to generate a payload/stager , by running {colored('generate','cyan')} command. Enter your {colored('host IP','cyan')} address when server URL is asked as this is where the victim will contact. If you are running on your host machine, stager will be generated automatically , but  {colored('if running on docker, you would get a help text','cyan')} to generate the stager.
-3. Then {colored('copy','cyan')} this stager.exe to the victim machine.
-4. Double click the stager.exe on the victim. You should see a new victim with an ID in logs.
-5. Check the vicitm list using {colored('victims','cyan')} command.
-6. To interact with victim, run {colored('use <victim_id>','cyan')}
-7. Now you are in victim help menu. Run {colored('modules','cyan')} to see the stuff you can run on the victim machine.
-8. To run a module, {colored('use <module_name>','cyan')} , ex : use screenshot
-9. You can then modify the arguments available for that module, Ex , you can set the path where screenhsot will be saved on the attacker/host machine, using 'set path /home'
-10. Now to run this module on victim, hit {colored('run','cyan')}
-11. {colored('Check in the logs','cyan')}, you will see the script/task being issue to the victim, and logs will also show where the output/screenshot is being stored.
+	row = [
+		["1.", f"First run a listener, by running {colored('http','cyan')}. Check in the logs if the listener is started successfully."],
+		["2.", f"Then you would want to generate a payload/stager , by running {colored('generate','cyan')} command. Enter your {colored('host IP','cyan')} address when server URL is asked as this is where the victim will contact. If you are running on your host machine, stager will be generated automatically , but  {colored('if running on docker, you would get a help text','cyan')} to generate the stager."],
+		["3.", f"Then {colored('copy','cyan')} this stager.exe to the victim machine."],
+		["4.", f"Double click the stager.exe on the victim. You should see a new victim with an ID in logs."],
+		["5.", f"Check the vicitm list using {colored('victims','cyan')} command."],
+		["6.", f"To interact with victim, run {colored('use <victim_id>','cyan')}"],
+		["7.", f"Now you are in victim help menu. Run {colored('modules','cyan')} to see the stuff you can run on the victim machine."],
+		["8.", f"To run a module, {colored('use <module_name>','cyan')} , ex : use screenshot."],
+		["9.", f"You can then modify the arguments available for that module, Ex , you can set the path where screenhsot will be saved on the attacker/host machine, using 'set path /home."],
+		["10.", f"Now to run this module on victim, hit {colored('run','cyan')}"],
+		["11.", f"{colored('Check in the logs','cyan')}, you will see the script/task being issue to the victim, and logs will also show where the output/screenshot is being stored."],
+	]
+	s = Style()
+	s.create_table("FRAMEWORK USAGE INSTRUCTIONS",column,row,'center')
 
-		""")
 
 def check_file_existence(path,file):
 	if not os.path.isfile(os.path.join(path,file)):
@@ -270,10 +300,8 @@ def main(args,db_object,server_logger):
 				## Attempts to kill the process running on that port
 				## killing with lsof doesn't work in docker
 				if not docker():
-					print(colored("Do you want to kill the process running on that port? Enter y or yes to do so.",'cyan'))
-					ans = str(input())
-
-					if ans.lower() in ['y','yes']:
+					ans = Confirm.ask("Do you want to kill the process running on that port?")
+					if ans:
 						if kill_process_on_port(port):
 							server_logger.info_log("Successfully killed the process on that port. Try running the listener again.",'green')
 						else:
@@ -401,6 +429,6 @@ if __name__=="__main__":
 	except:
 
 		## TODO - also mark all the victims dead ? Same during exit
-		server_logger.info_log(traceback.format_exc(),'red')
+		console.print_exception(show_locals=True,max_frames=5)
 		Listener.kill_all_listeners()
 		if args.clear_db : db_object.drop_db()

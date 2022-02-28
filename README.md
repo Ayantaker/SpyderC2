@@ -50,7 +50,7 @@ NOTE : This is a hobby project and is solely created for educational/learning pu
 - Once the 2 containers spins up (Python and MongoDB), run the following :
 
 	```bash
-	sudo docker exec -it spyderc2_server python3 /home/attacker/SpyderC2/main.py
+	sudo docker exec -it server python3 /home/attacker/SpyderC2/main.py
 	````
 
 - You should be greeted with SpyderC2 server console. Now follow the below steps to try out the framework

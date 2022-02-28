@@ -3,6 +3,7 @@ import os
 import pathlib
 import sys
 from termcolor import colored
+from lib.style import Style
 import readline
 import re
 
@@ -95,11 +96,19 @@ class Module:
 		module_options,description = cls.get_options(module,utility)
 
 		print(f"\n{colored(module.upper(),'blue')} : {description}\n")
-		print(' --------------------------------------------------')
-		print('|          MODULE CONFIGURABLE OPTIONS             |')
-		print(' --------------------------------------------------')
-
-		print("\nName		Required	Description")
-		print("-----		---------	------------")
+		row = []
 		for key in module_options.keys():
-			print(f"{colored(key,'cyan')}		{module_options[key]['required']}		{module_options[key]['desc']}")
+			row.append([key,str(module_options[key]['required']),module_options[key]['desc']])
+
+		column = {
+			"Name" : {'style':"cyan"},
+			"Required":{'style':"cyan"},
+			"Description":{'justify':"left", 'no_wrap':False}
+		}
+
+		s = Style()
+		s.create_table("MODULE CONFIGURABLE OPTIONS",column,row,'center')
+
+
+		
+		

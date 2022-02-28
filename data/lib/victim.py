@@ -5,9 +5,12 @@ import string
 from lib.task import Task
 from lib.module import Module
 from termcolor import colored
+from lib.style import Style
 import readline
 import re
 import os
+from rich.prompt import Prompt
+from rich.text import Text
 
 
 class Victim:
@@ -63,23 +66,41 @@ class Victim:
 	def show_victims(cls):
 		print(f"\nTo interact with a victim run {colored('use <victim_id>','cyan')}")
 		print("")
-		print("Victim IDs		Victim Status")
-		print("----------		-------------")
+		
+		row = []
 		for victim in cls.victims:
-			print(f"{victim}		{cls.victims[victim].status}")
+			text = cls.victims[victim].status
+			status = Text(text)
+			status.stylize("red") if text == 'Dead' else status.stylize("bold green")
+			
+			row.append([victim,status])
 
+		column = {
+			"Victim ID" : {'style':"cyan"},
+			"Victim Status":{'justify':"left", 'no_wrap':True}
+		}
+
+		s = Style()
+		s.create_table("VICTIMS",column,row,'center')
 
 	@classmethod
 	## Shows victim help menu
 	def display_victim_help_menu(cls):
-		print('--------------------------------------')
-		print('|          VICTIM HELP MENU           |')
-		print('--------------------------------------')
-		commands = {'info':'Shows current victim information.' , 'modules': 'Shows modules executable on current victim.', 'tasks':'Show the task issued to the current victim and if there is output','kill': 
-		'Kill Victim', 'back': 'Go back to main menu.'}
+		print("")
+		column = {
+			"Command" : {'style':"cyan"},
+			"Description":{'justify':"left", 'no_wrap':True}
+		}
 
-		for command in commands.keys():
-			print(colored(command,'cyan') + " - " + commands[command])
+		row = [
+			["info", "Shows current victim information."],
+			["modules", "Shows modules executable on current victim."],
+			["tasks", "Show the task issued to the current victim and if there is output."],
+			["kill", "Kill Victim"],
+			["back", "Go back to main menu."],
+		]
+		s = Style()
+		s.create_table("VICTIM HELP MENU",column,row,'center')
 
 	## This will load the victim info present in DB, created from server.py and instanitate objects for them.
 	@classmethod
@@ -147,7 +168,24 @@ class Victim:
 		self.update_location_from_db()
 		time = self.get_victim_health_status()
 
-		print(f"{colored('ID','cyan')} - {self.victim_id} \n{colored('Platform','cyan')} - {self.platform} \n{colored('OS Version','cyan')} - {self.os_version} \n{colored('Admin Privileges','cyan')} - {self.admin} \n{colored('Stager Location','cyan')} - {self.location} \n{colored('lastseen','cyan')} - {self.lastseen} \n{colored('status','cyan')} - {self.status} \n{colored('Seen','cyan')} - {str(time.total_seconds())} secs ago")
+		column = {
+			"Property" : {'style':"cyan"},
+			"Value":{'justify':"left", 'no_wrap':True}
+		}
+
+		row = [
+			["ID", self.victim_id],
+			["Platform", self.platform],
+			["OS Version", self.os_version],
+			["Admin Privileges", self.admin],
+			["Stager Location", self.location],
+			["lastseen", str(self.lastseen)],
+			["status", self.status],
+			["Last Seen", f"{str(time.total_seconds())} secs ago"],
+		]
+
+		s = Style()
+		s.create_table("VICTIM INFO",column,row,'center')
 		
 
 	def show_tasks(self):
@@ -165,26 +203,43 @@ class Victim:
 			return 'python'
 
 		while True:
-			print(colored("\nModules are supported in powershell (Windows only) and python langauge. Press enter for default, python. Please select language",'cyan'))
-			language = str(input())
-			language = language.lower()
+			language = Prompt.ask("Select the language of module to execute on victim. Powershell is for windows only.", choices=["powershell", "python", "back"], default="python")
 
-			if language == '':
-				language = 'python'
-
-			## Maybe somehow tell the attacker that powershell scripts execution is disabled? TODO
-			if language == 'powershell':
-				print(colored("\nNOTE : Windows devices has powershell based scripts execution disabled by default. Try with python as the language in that case.",'yellow'))
-			if language in ['powershell','python']:
+			if language == 'back':
+				return False
+			else:
+				## Maybe somehow tell the attacker that powershell scripts execution is disabled? TODO
+				if language == 'powershell':
+					print(colored("\nNOTE : Windows devices has powershell based scripts execution disabled by default. Try with python as the language in that case.",'yellow'))
+				
 				if language in self.language_supported[module]:
 					return language
 				else:
 					print(colored(f"\nSorry {module} doesn't support {language}. Try the other langauge.",'yellow'))
-			elif language in ['back','exit']:
-				return False
-			else:
-				print(colored("Sorry not supported language",'yellow'))
-				continue
+					continue
+
+	## Shows the modules supported by the victim
+	def show_modules(self):
+		print("")
+		row = []
+		i = 0
+		for module in self.modules:
+			i+=1
+			utility = self.modules[module]['utility']
+			_,description = Module.get_options(module,utility)
+			row.append([f"{str(i)}.",module,', '.join(self.language_supported[module]),description])
+
+		column = {
+			"S.N" : {'style':"cyan"},
+			"Name" : {'style':"cyan"},
+			"Language Supported" : {'style':"cyan"},
+			"Description":{'justify':"left", 'no_wrap':False}
+		}
+
+		s = Style()
+		s.create_table("MODULES SUPPORTED",column,row,'center')
+		print("")
+
 
 	## Displays the victim menu
 	def victim_menu(self):
@@ -197,7 +252,7 @@ class Victim:
 				self.get_victim_info()
 
 			elif cmd == 'modules':
-				print(list(self.modules.keys()))
+				self.show_modules()
 
 			elif cmd ==  'tasks':
 				self.show_tasks()
@@ -228,6 +283,8 @@ class Victim:
 				if module in self.modules:
 					utility = self.modules[module]['utility']
 					language = self.get_module_language(module)
+					if not language: continue
+					
 					Module.show_options(module,utility)
 
 					## Gets the paramters for a module which user might customize

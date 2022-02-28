@@ -9,8 +9,7 @@ sys.path.append(os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../..
 from module import Module
 
 class Running_Processes(Module):
-	description = """This module provides details about various processes running on the victim.
-		In case of python payload csv is provided, in case of powershell txt file is given."""
+	description = """This module provides details about various processes running on the victim. In case of python payload csv is provided, in case of powershell txt file is given."""
 
 	@classmethod
 	def module_options(cls):
