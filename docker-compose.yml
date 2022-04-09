@@ -12,7 +12,8 @@ version: '3'
 services:
 
   mongo:
-    image: mongo
+    # Hardcoding to 4.4 as latest versions tend to cause issues with some CPUs
+    image: mongo:4.4
     restart: always
     container_name: db
     environment:

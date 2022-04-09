@@ -16,7 +16,8 @@ from rich.prompt import Prompt
 from rich.traceback import install
 from rich.console import Console
 from rich.prompt import Confirm
-
+from rich.panel import Panel
+from rich import print as pprint
 from lib.style import Style
 
 install(show_locals=True,max_frames=5)
@@ -101,9 +102,9 @@ def fill_server_url(args={}):
 		server_ip = args['ip'] if args['ip'] else '0.0.0.0'
 		server_port = args['port'] if args['port'] else '8080'
 	else:
-		server_ip = Prompt.ask("Enter listener IP", default='0.0.0.0')
+		server_ip = Prompt.ask("\nEnter listener IP", default='0.0.0.0')
 		while True:
-			server_port = Prompt.ask("Enter listener port", default='8080')
+			server_port = Prompt.ask("\nEnter listener port", default='8080')
 			if not server_port.isdigit():
 				print("Please enter Port in integer")
 				continue
@@ -128,10 +129,10 @@ def print_help_text():
 	}
 
 	row = [
-		["1.", f"First run a listener, by running {colored('http','cyan')}. Check in the logs if the listener is started successfully."],
-		["2.", f"Then you would want to generate a payload/stager , by running {colored('generate','cyan')} command. Enter your {colored('host IP','cyan')} address when server URL is asked as this is where the victim will contact. If you are running on your host machine, stager will be generated automatically , but  {colored('if running on docker, you would get a help text','cyan')} to generate the stager."],
-		["3.", f"Then {colored('copy','cyan')} this stager.exe to the victim machine."],
-		["4.", f"Double click the stager.exe on the victim. You should see a new victim with an ID in logs."],
+		["1.", f"Run a listener, by running {colored('http','cyan')} command. Check logs to see if listener is started successfully."],
+		["2.", f"Generate a payload/stager, by running {colored('generate','cyan')} command. Enter your {colored('host IP','cyan')} address, this is where the victim will contact (generally host IP). If {colored('running on docker, you would get a help text to generate the stager','cyan')} , else it will be generated automatically."],
+		["3.", f"{colored('Copy','cyan')} this stager.exe/stager to the victim machine."],
+		["4.", f"Double click the stager on the victim. You should see a new victim has joined with an ID in logs."],
 		["5.", f"Check the vicitm list using {colored('victims','cyan')} command."],
 		["6.", f"To interact with victim, run {colored('use <victim_id>','cyan')}"],
 		["7.", f"Now you are in victim help menu. Run {colored('modules','cyan')} to see the stuff you can run on the victim machine."],
@@ -250,9 +251,15 @@ def generate_stager(server_logger,args={}):
 
 
 
-			print(colored(f"\nexe dumped to {colored(f'<path_to_SpyderC2>/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
+			print(colored(f"\nStager dumped to {colored(f'SpyderC2/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
-			print(colored("\nPlease run the following command: "+ colored('sudo docker run -v \"$(pwd):/src/\" cdrx/pyinstaller-'+os_name + ' && ' + 'sudo ../../utilities/upx/upx ../tmp/dist/'+os_name+'/stager.exe','cyan')+" in "+colored('<path_to_SpyderC2>/data/shared/tmp','blue')+" directory on the host machine.\n The stager will be generated in "+ colored('<path_to_SpyderC2>/data/shared/tmp/dist/'+os_name,'blue')+".\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe on victim."))
+			print("\n")
+			cmd = f'Please run the following command in path [orange_red1]SpyderC2/data/shared/tmp[/orange_red1] on the [bold blue]HOST MACHINE [/bold blue]\n\n'
+
+			cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-linux && sudo ../../utilities/upx/upx ../tmp/dist/linux/{binary_name}[/bright_cyan]\n\n'
+
+			cmd += f'The stager will be generated in [orange_red1]SpyderC2/data/shared/tmp/dist/{os_name}[/orange_red1] on HOST.\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager on victim.'
+			pprint(Panel(cmd, title="[red bold]ATTENTION!"))
 
 		return True
 	except subprocess.CalledProcessError as grepexc:                                                                                                   
@@ -288,20 +295,16 @@ def main(args,db_object,server_logger):
 		cmd = str(input(colored("(SpyderC2:) > ",'red')))
 
 		if cmd == 'http':
+			print()
+			if docker(): pprint(Panel("For docker, the range of usable port is [cyan]8080-8100[/cyan] due to increased startup times for port forwarding. Enter accordingly, if more needed, adjust in the docker-compose.yml", title="[red bold]NOTE!"))
 
 			while True:
-				print(colored("\nEnter Listening Port. Default is 8080",'cyan'))
-				if docker(): print(colored('Please note , for docker the range of usable port is 8080-8100 due to increased startup times for forwarding. if you need more, adjust in the docker-compose.yml'))
-				port = str(input())
-
-				if port == '':
-					port='8080'
-					break
-				elif not port.isdigit():
-					print("Please enter Port in integer")
+				port = Prompt.ask("\nEnter listener port", default='8080')
+				if not port.isdigit():
+					pprint("[yellow]Please enter Port in integer[/yellow]")
+					continue
 				else:
 					break
-
 			obj = Listener.listener_exists(port)
 
 			if not obj:

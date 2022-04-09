@@ -1,11 +1,6 @@
 FROM python:3.8.12-alpine3.15
 
-RUN pip3 install termcolor ## These can be made into requirements.txt which python container auto install??
-RUN pip3 install pymongo
-RUN pip3 install flask
-RUN pip3 install rich
-
-
+RUN pip3 install termcolor pymongo flask rich ## These can be made into requirements.txt which python container auto install??
 
 COPY data /home/attacker/SpyderC2
 WORKDIR /home/attacker/SpyderC2
