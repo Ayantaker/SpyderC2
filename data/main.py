@@ -69,7 +69,7 @@ def display_ascii_art():
 def display_main_help_menu():
 	print("")
 	column = {
-	"Command" : {'style':"cyan"},
+	"Command" : {'style':"gold3"},
 	"Description":{'justify':"left", 'no_wrap':True}
 	}
 
@@ -106,7 +106,7 @@ def fill_server_url(args={}):
 		while True:
 			server_port = Prompt.ask("\nEnter listener port", default='8080')
 			if not server_port.isdigit():
-				print("Please enter Port in integer")
+				pprint("[yellow]Please enter Port in integer[/yellow]")
 				continue
 			break
 
@@ -125,21 +125,21 @@ def print_help_text():
 	print("")
 	column = {
 		"S.N" : {'style':"cyan"},
-		"Instruction":{'justify':"left", 'style':"white",'no_wrap':False}
+		"Instruction":{'justify':"left", 'no_wrap':False}
 	}
 
 	row = [
-		["1.", f"Run a listener, by running {colored('http','cyan')} command. Check logs to see if listener is started successfully."],
-		["2.", f"Generate a payload/stager, by running {colored('generate','cyan')} command. Enter your {colored('host IP','cyan')} address, this is where the victim will contact (generally host IP). If {colored('running on docker, you would get a help text to generate the stager','cyan')} , else it will be generated automatically."],
-		["3.", f"{colored('Copy','cyan')} this stager.exe/stager to the victim machine."],
+		["1.", f"Run a listener, by running [gold3]http[/gold3] command. Check logs to see if listener is started successfully."],
+		["2.", f"Generate a payload/stager, by running [gold3]generate[/gold3] command. Enter your [gold3]host IP[/gold3] address, this is where the victim will contact (generally host IP). If [gold3]running on docker, you would get a help text to generate the stager[/gold3] , else it will be generated automatically."],
+		["3.", f"[gold3]Copy[/gold3] this stager.exe/stager to the victim machine."],
 		["4.", f"Double click the stager on the victim. You should see a new victim has joined with an ID in logs."],
-		["5.", f"Check the vicitm list using {colored('victims','cyan')} command."],
-		["6.", f"To interact with victim, run {colored('use <victim_id>','cyan')}"],
-		["7.", f"Now you are in victim help menu. Run {colored('modules','cyan')} to see the stuff you can run on the victim machine."],
-		["8.", f"To run a module, {colored('use <module_name>','cyan')} , ex : use screenshot."],
+		["5.", f"Check the vicitm list using [gold3]victims[/gold3] command."],
+		["6.", f"To interact with victim, run [gold3]use <victim_id>[/gold3]"],
+		["7.", f"Now you are in victim help menu. Run [gold3]modules[/gold3] to see the stuff you can run on the victim machine."],
+		["8.", f"To run a module, [gold3]use <module_name>[/gold3] , ex : use screenshot."],
 		["9.", f"You can then modify the arguments available for that module, Ex , you can set the path where screenhsot will be saved on the attacker/host machine, using 'set path /home."],
-		["10.", f"Now to run this module on victim, hit {colored('run','cyan')}"],
-		["11.", f"{colored('Check in the logs','cyan')}, you will see the script/task being issue to the victim, and logs will also show where the output/screenshot is being stored."],
+		["10.", f"Now to run this module on victim, hit [gold3]run[/gold3]"],
+		["11.", f"[gold3]Check in the logs[/gold3], you will see the script/task being issue to the victim, and logs will also show where the output/screenshot is being stored."],
 	]
 	s = Style()
 	s.create_table("FRAMEWORK USAGE INSTRUCTIONS",column,row,'center')
@@ -256,7 +256,7 @@ def generate_stager(server_logger,args={}):
 			print("\n")
 			cmd = f'Please run the following command in path [orange_red1]SpyderC2/data/shared/tmp[/orange_red1] on the [bold blue]HOST MACHINE [/bold blue]\n\n'
 
-			cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-linux && sudo ../../utilities/upx/upx ../tmp/dist/linux/{binary_name}[/bright_cyan]\n\n'
+			cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
 
 			cmd += f'The stager will be generated in [orange_red1]SpyderC2/data/shared/tmp/dist/{os_name}[/orange_red1] on HOST.\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager on victim.'
 			pprint(Panel(cmd, title="[red bold]ATTENTION!"))

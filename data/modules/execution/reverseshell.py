@@ -10,7 +10,7 @@ sys.path.append(os.path.join(str(pathlib.Path(__file__).parent.resolve()),'../..
 from module import Module
 
 class Reverseshell(Module):
-	description = f"This module starts a reverse shell from the victim shell. {colored('NOTE : Use a listener tool like netcat to start a listener in another shell before running this module. Ex : nc -nlvp <lport> , ncat -nlvp <lport>','cyan')}"
+	description = f"This module starts a reverse shell from the victim shell. NOTE : Use a listener tool like netcat to start a listener in another shell before running this module. Ex : nc -nlvp <lport> , ncat -nlvp <lport>','cyan')"
 
 	@classmethod
 	def module_options(cls):

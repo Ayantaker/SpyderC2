@@ -4,6 +4,8 @@ import pathlib
 import sys
 from termcolor import colored
 from lib.style import Style
+from rich import print as pprint
+from rich.panel import Panel
 import readline
 import re
 
@@ -92,16 +94,19 @@ class Module:
 		return module_options,description
 	@classmethod
 	def show_options(cls,module,utility):
-		print(colored(f"\n\nInteracting with {colored(module,'cyan')}. You can configure the options below by {colored('set <option_name> <option_value>','cyan')}. Once done configuring module, press {colored('run','cyan')} to run it on vicitim."))
 		module_options,description = cls.get_options(module,utility)
+		cmd = f"Interacting with [cyan]{module}[/cyan].You can configure the options below by '[cyan]set <option_name> <option_value>[/cyan]'. Once done configuring module, press '[cyan]run[/cyan]' to run it on vicitim.\n\n[cyan]{module.upper()}[/cyan] : [cyan]{description}[/cyan]"
+		print("\n\n")
+		pprint(Panel(cmd, title="[red bold blink]INFO!"))
 
-		print(f"\n{colored(module.upper(),'blue')} : {description}\n")
+		
+
 		row = []
 		for key in module_options.keys():
 			row.append([key,str(module_options[key]['required']),module_options[key]['desc']])
 
 		column = {
-			"Name" : {'style':"cyan"},
+			"Name" : {'style':"gold3"},
 			"Required":{'style':"cyan"},
 			"Description":{'justify':"left", 'no_wrap':False}
 		}

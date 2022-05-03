@@ -11,6 +11,8 @@ import re
 import os
 from rich.prompt import Prompt
 from rich.text import Text
+from rich import print as pprint
+from rich.panel import Panel
 
 
 class Victim:
@@ -71,12 +73,12 @@ class Victim:
 		for victim in cls.victims:
 			text = cls.victims[victim].status
 			status = Text(text)
-			status.stylize("red") if text == 'Dead' else status.stylize("bold green")
+			status.stylize("red") if text == 'Dead' else status.stylize("blink bold green")
 			
 			row.append([victim,status])
 
 		column = {
-			"Victim ID" : {'style':"cyan"},
+			"Victim ID" : {'style':"gold3"},
 			"Victim Status":{'justify':"left", 'no_wrap':True}
 		}
 
@@ -88,7 +90,7 @@ class Victim:
 	def display_victim_help_menu(cls):
 		print("")
 		column = {
-			"Command" : {'style':"cyan"},
+			"Command" : {'style':"gold3"},
 			"Description":{'justify':"left", 'no_wrap':True}
 		}
 
@@ -169,7 +171,7 @@ class Victim:
 		time = self.get_victim_health_status()
 
 		column = {
-			"Property" : {'style':"cyan"},
+			"Property" : {'style':"gold3"},
 			"Value":{'justify':"left", 'no_wrap':True}
 		}
 
@@ -191,11 +193,25 @@ class Victim:
 	def show_tasks(self):
 		if not self.tasks:
 			print(colored('No tasks to show','yellow'))
+			return
+
+		row = []
+
 		for key in self.tasks.keys():
 			task_obj = self.tasks[key]
 			task_obj.update_task_from_db()
-			print(f"{colored('Task ID','cyan')} - {task_obj.task_id} \n{colored('Command','cyan')} - {task_obj.command} \n{colored('Command Output','cyan')} - {task_obj.output} \n{colored('Issued','cyan')} - {task_obj.issued}")
-			print("------------------------")
+			op = 'None' if task_obj.output == None else f"[green]{task_obj.output}[/green]"
+			row.append([task_obj.task_id,task_obj.command,str(task_obj.issued),op])
+
+		column = {
+			"Task ID" : {'style':"gold3"},
+			"Command":{'style':"cyan"},
+			"Issued":{'style':"cyan"},
+			"Command Output":{'justify':"left", 'no_wrap':False}
+		}
+
+		s = Style()
+		s.create_table("TASKS",column,row,'center')
 
 	def get_module_language(self,module):
 		## Does linux support powershell?
@@ -227,11 +243,12 @@ class Victim:
 			i+=1
 			utility = self.modules[module]['utility']
 			_,description = Module.get_options(module,utility)
-			row.append([f"{str(i)}.",module,', '.join(self.language_supported[module]),description])
+			langs = ', '.join(self.language_supported[module]).replace('powershell','[blue1]powershell[/blue1]').replace('python','[green3]python3[/green3]')
+			row.append([f"{str(i)}.",module,langs,description])
 
 		column = {
 			"S.N" : {'style':"cyan"},
-			"Name" : {'style':"cyan"},
+			"Name" : {'style':"gold3"},
 			"Language Supported" : {'style':"cyan"},
 			"Description":{'justify':"left", 'no_wrap':False}
 		}
@@ -244,7 +261,9 @@ class Victim:
 	## Displays the victim menu
 	def victim_menu(self):
 		self.display_victim_help_menu()
-		print(f"\nYou are now interacting with the victim. To do bad stuff on victim, you might want to run {colored('modules','cyan')} commands to see the modules you can run and then use it by running '{colored('use <module_name>','cyan')}'\n")
+		cmd = "You are now interacting with the victim. To do bad stuff on victim, you might want to run '[cyan]modules[/cyan]' commands to see the modules you can run and then use it by running '[cyan]use <module_name>[/cyan]'"
+		print("\n\n")
+		pprint(Panel(cmd, title="[red bold blink]INFO!"))
 		while True:
 			cmd = str(input(colored(f"(SpyderC2: Victim) {colored(self.victim_id,'cyan')} > ",'red')))
 
