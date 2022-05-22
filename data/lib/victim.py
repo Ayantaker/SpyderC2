@@ -83,7 +83,7 @@ class Victim:
 		}
 
 		s = Style()
-		s.create_table("VICTIMS",column,row,'center')
+		s.create_table("[gold3]VICTIMS[/gold3]",column,row,'center')
 
 	@classmethod
 	## Shows victim help menu
@@ -102,7 +102,7 @@ class Victim:
 			["back", "Go back to main menu."],
 		]
 		s = Style()
-		s.create_table("VICTIM HELP MENU",column,row,'center')
+		s.create_table("[gold3]VICTIM HELP MENU[/gold3]",column,row,'center')
 
 	## This will load the victim info present in DB, created from server.py and instanitate objects for them.
 	@classmethod
@@ -187,7 +187,7 @@ class Victim:
 		]
 
 		s = Style()
-		s.create_table("VICTIM INFO",column,row,'center')
+		s.create_table("[gold3]VICTIM INFO[/gold3]",column,row,'center')
 		
 
 	def show_tasks(self):
@@ -211,7 +211,7 @@ class Victim:
 		}
 
 		s = Style()
-		s.create_table("TASKS",column,row,'center')
+		s.create_table("[gold3]TASKS[/gold3]",column,row,'center')
 
 	def get_module_language(self,module):
 		## Does linux support powershell?
@@ -254,7 +254,7 @@ class Victim:
 		}
 
 		s = Style()
-		s.create_table("MODULES SUPPORTED",column,row,'center')
+		s.create_table("[gold3]MODULES SUPPORTED[/gold3]",column,row,'center')
 		print("")
 
 

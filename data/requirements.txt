@@ -5,3 +5,4 @@ argparse
 pymongo
 mss
 psutil
+rich

