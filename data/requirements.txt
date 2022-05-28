@@ -6,3 +6,4 @@ pymongo
 mss
 psutil
 rich
+kivy

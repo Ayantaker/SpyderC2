@@ -36,6 +36,10 @@ class Victim:
 				'exfiltration':{'utility': 'collection'},
 				'running_processes':{'utility': 'collection'},
 				'reverseshell': {'utility': 'execution'},
+			},
+			'Android': {
+				'exfiltration':{'utility': 'collection'},
+				'reverseshell': {'utility': 'execution'},
 			}
 		}
 	language_supported = {

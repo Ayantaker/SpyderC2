@@ -2,3 +2,5 @@ __pycache__
 victim_data/
 tmp
 db
+.buildozer
+.buildozer_docker

@@ -34,7 +34,9 @@ services:
     depends_on:
       - mongo
     volumes:
-      - ./data/shared:/home/attacker/SpyderC2/shared
+      - ./data/shared/tmp:/home/attacker/SpyderC2/shared/tmp
+      - ./data/shared/victim_data:/home/attacker/SpyderC2/shared/victim_data
+      - ./data/shared/.buildozer_docker:/home/attacker/SpyderC2/shared/.buildozer
     environment:
       MONGODB_DATABASE: SpyderC2
       MONGODB_USERNAME: root
