@@ -24,6 +24,9 @@ version = 0.1
 # comma separated e.g. requirements = sqlite3,kivy
 requirements = python3,kivy,flask,requests,mss,urllib3,chardet,idna,certifi
 
+# (list) The Android archs to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
+# In past, was `android.arch` as we weren't supporting builds for multiple archs at the same time.
+android.archs = x86
 
 
 # (str) Supported orientation (one of landscape, sensorLandscape, portrait or all)

@@ -264,6 +264,21 @@ def generate_android_stager(path,retry=True):
 			return False
 
 
+
+def copy_requirements_file(os_name,path):
+	req_path = os.path.join(path,'requirements.txt')
+	req_content = open(req_path,'r').read()
+
+	## Pyinstaller linux can't build kivy
+	if os_name == 'linux':
+		req_content = req_content.replace("kivy","#kivy")
+
+	new_path = os.path.join(path,'shared','tmp','requirements.txt')
+
+	f = open(new_path,'w+')
+	print(req_content,file=f)
+	f.close()
+
 def generate_stager(server_logger,args={}):
 	
 	if 'generate' in args and args['generate']:
@@ -298,9 +313,10 @@ def generate_stager(server_logger,args={}):
 		## Check for src files to copy
 		if not check_file_existence(PATH,'stager.spec'): return
 		if not check_file_existence(PATH,'requirements.txt'): return
+		copy_requirements_file(os_name,PATH)
 		## Copy files.
 		shutil.copyfile(os.path.join(PATH,'stager.spec'),os.path.join(PATH,'shared','tmp','stager.spec'))
-		shutil.copyfile(os.path.join(PATH,'requirements.txt'),os.path.join(PATH,'shared','tmp','requirements.txt'))
+		
 		if not check_file_existence(PATH,os.path.join('shared','tmp','stager.spec')): return
 		if not check_file_existence(PATH,os.path.join('shared','tmp','requirements.txt')): return
 

