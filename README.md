@@ -23,7 +23,7 @@ NOTE : This is a hobby project and is solely created for educational/learning pu
 
 ## Few notable features
 
-- Supports windows and linux victims
+- Supports windows and linux and **Android** (x86 architecture apk generation tested on ubuntu) victims
 - Docker support
 - Not detectable by antiviruses
 - Evil stuff/modules you can do/run on your victim :
@@ -34,12 +34,12 @@ NOTE : This is a hobby project and is solely created for educational/learning pu
 	- Persistence
 	- Reverse shell
 - New modules are easy to write and integrate
-- No window pops up when stager is executed on victim.
+- No window pops up when stager is executed on victim (Windows and Linux).
 
 
 ## Installation
 
-- It's much easier to use the docker version to not run into dependency issues.
+- It's much easier to use the docker version to not run into dependency issues(Android stager generation not tested there). If you want android victims then don't use docker
 - Install Docker for your distro
 - Get Docker Compose from [here](https://docs.docker.com/compose/install/)
 - Now simply run :
