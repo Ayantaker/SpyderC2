@@ -23,7 +23,7 @@ NOTE : This is a hobby project and is solely created for educational/learning pu
 
 ## Few notable features
 
-- Supports windows and linux and **Android** (x86 architecture apk generation tested on ubuntu) victims
+- Supports windows and linux and **Android** (x86 architecture apk generation tested on ubuntu, Docker recommended) victims
 - Docker support
 - Not detectable by antiviruses
 - Evil stuff/modules you can do/run on your victim :
@@ -39,7 +39,7 @@ NOTE : This is a hobby project and is solely created for educational/learning pu
 
 ## Installation
 
-- It's much easier to use the docker version to not run into dependency issues(Android stager generation not tested there). If you want android victims then don't use docker
+- It's much easier to use the docker version to not run into dependency issues(Especially recommended for Android stager). If you want android victims then use docker for more success rate in generating stager APK.
 - Install Docker for your distro
 - Get Docker Compose from [here](https://docs.docker.com/compose/install/)
 - Now simply run :
@@ -55,6 +55,12 @@ NOTE : This is a hobby project and is solely created for educational/learning pu
 
 - You should be greeted with SpyderC2 server console. Now follow the below steps to try out the framework
 
+## NOTE FOR ANDROID VICTIMS
+- Android Stager generation has been tested in debian based OS(Ubuntu to be specific). So better to use the docker based installation for this.
+- Stager is generated for x86 based Android Architecture (like Genymotion). Real android devices are arm based, testing for them needs to be done in future.
+- We use buildozer scripts to generate the apk from the python scripts.
+- Creation of android stager takes some time for the first time (around 15-20 mins).
+- For fresh compilation of android stager, you might want to delete th folder buildozer_docker created from previous creations.
 
 ## How to use:
 

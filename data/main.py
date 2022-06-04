@@ -252,10 +252,14 @@ def generate_android_stager(path,retry=True):
 		return True
 	else:
 		if retry:
-			pprint("[yellow]Installing dependencies and trying again[/yellow]")
-			res = install_android_dependencies(path)
-			if res:
-				generate_android_stager(path,retry=False)
+			ans = Confirm.ask("[yellow]Do you want to install dependencies and try again ?[/yellow]")
+			if ans:
+				res = install_android_dependencies(path)
+				if res:
+					generate_android_stager(path,retry=False)
+				else:
+					pprint(f"\n[red]APK generation not successful.[/red]")
+					return False
 			else:
 				pprint(f"\n[red]APK generation not successful.[/red]")
 				return False

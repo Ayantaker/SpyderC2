@@ -1,4 +1,8 @@
-FROM python:3.8.12-alpine3.15
+FROM amd64/ubuntu:20.04
+RUN apt-get update
+
+## DEBIAN_FRONTEND=noninteractive added as installation was getting stuck asking for some user input. Most of the libnraries expect python and pip is needed for android stager generation
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y build-essential libssl-dev curl sudo git default-jre default-jdk unzip autoconf pkg-config libffi-dev libtool python3 python3-pip zip
 RUN pip3 install termcolor pymongo flask rich ## These can be made into requirements.txt which python container auto install??
 
 COPY data /home/attacker/SpyderC2

@@ -3,4 +3,6 @@ victim_data/
 tmp
 db
 .buildozer
-.buildozer_docker
+buildozer_docker
+data/utilities/buildozer/
+get-pip.py
