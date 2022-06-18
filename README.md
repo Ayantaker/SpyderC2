@@ -25,7 +25,6 @@ NOTE : This is a hobby project and is solely created for educational/learning pu
 
 - Supports windows and linux and **Android** (x86 architecture apk generation tested on ubuntu, Docker recommended) victims
 - Docker support
-- Not detectable by antiviruses
 - Evil stuff/modules you can do/run on your victim :
 	- Taking Screenshots
 	- Taking out Browser History
