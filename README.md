@@ -1,20 +1,8 @@
 # SpyderC2 Framework
 
-					               (
-					                )
-					               (
-					        /\  .-"""-.  /\
-					       //\\/  ,,,  \//\\
-					       |/\| ,;;;;;, |/\|
-					       //\\\;-"""-;///\\
-					      //  \/  C2  \/  \\
-					     (| ,-_| \||/ |_-, |)
-					       //`__\.-.-./__`\\
-					      // /.-(() ())-.\ \\
-					     (\ |)   '---'   (| /)
-					      ` (|           |) `
-					         \)          (/
-					            SPYDERC2
+# SpyderC2 Framework
+
+![Logo](https://github.com/Ayantaker/SpyderC2/blob/master/SpyderC2_Logo.png)
 
 ## CAUTION
 
