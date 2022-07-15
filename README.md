@@ -20,6 +20,9 @@
 
 NOTE : This is a hobby project and is solely created for educational/learning purposes. The author/creator doesn't provide any warranty nor will take any liabilities for any damage caused due to usage of the framework.
 
+## Guide Videos
+
+Find the entire palylist of videos guiding you through SpyderC2 here : https://www.youtube.com/watch?v=8_-6r0F0kSg&list=PLJ67Um6OelSn1e1fir521obmkbrI4-g-0
 
 ## Few notable features
 
