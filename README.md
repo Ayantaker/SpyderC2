@@ -1,7 +1,5 @@
 # SpyderC2 Framework
 
-# SpyderC2 Framework
-
 ![Logo](https://github.com/Ayantaker/SpyderC2/blob/master/SpyderC2_Logo.png)
 
 ## CAUTION
