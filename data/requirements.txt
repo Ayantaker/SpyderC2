@@ -7,3 +7,4 @@ mss
 psutil
 rich
 kivy
+chardet

