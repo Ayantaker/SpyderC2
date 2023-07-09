@@ -33,12 +33,13 @@ Find the entire palylist of videos guiding you through SpyderC2 here : https://w
 - Now simply run :
 
 	```bash
-	sudo docker-compose up
+	## SPYDERC2_HOST_PATH should point to wherever you downloaded the repo
+	SPYDERC2_HOST_PATH=/home/kali/SpyderC2 docker-compose up
 	```
 - Once the 2 containers spins up (Python and MongoDB), run the following :
 
 	```bash
-	sudo docker exec -it server python3 /home/attacker/SpyderC2/main.py
+	docker exec -it server python3 /home/attacker/SpyderC2/main.py
 	````
 
 - You should be greeted with SpyderC2 server console. Now follow the below steps to try out the framework
@@ -54,7 +55,7 @@ Find the entire palylist of videos guiding you through SpyderC2 here : https://w
 
 - First run a listener, by running http. Check in the logs if the listener is started successfully.
 
-- Then you would want to generate a payload/stager , by running generate command. Enter your host IP address when server URL is asked. If you are running on your host machine, it will be generated automatically, if running on docker, you would get a help text to generate the stager.
+- Then you would want to generate a payload/stager , by running generate command. Enter your listener/host's IP address and listener port. A stager should be generated
 
 - Then copy this stager.exe to the victim Windows machine.
 

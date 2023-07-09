@@ -36,6 +36,8 @@ services:
     volumes:
       - ./data/shared/tmp:/home/attacker/SpyderC2/shared/tmp
       - ./data/shared/victim_data:/home/attacker/SpyderC2/shared/victim_data
+      ## Mounting host's docker socket to be able to run docker containers from inside
+      - /var/run/docker.sock:/var/run/docker.sock
       ## The below mounts are for android apk gen, so that we don't need to recompile everything from scratch everytime
       - ./data/shared/buildozer_docker/.buildozer_cwd:/home/attacker/SpyderC2/shared/.buildozer
       - ./data/shared/buildozer_docker/.buildozer_home:/root/.buildozer
@@ -44,6 +46,7 @@ services:
       MONGODB_USERNAME: root
       MONGODB_PASSWORD: password
       MONGODB_HOSTNAME: mongo
+      SPYDERC2_HOST_PATH: ${SPYDERC2_HOST_PATH}
     ports:
       - 8080-8100:8080-8100
     healthcheck:
